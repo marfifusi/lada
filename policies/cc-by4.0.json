@@ -1,0 +1,53 @@
+{
+  "@context": [
+    "http://www.w3.org/ns/odrl.jsonld",
+    {
+      "cc": "http://creativecommons.org/ns#",
+      "dct": "http://purl.org/dc/terms/",
+      "ldr": "http://purl.org/NET/ldr/ns#",
+      "foaf": "http://xmlns.com/foaf/0.1/",
+      "rdfs": "http://www.w3.org/2000/01/rdf-schema#"
+    }
+  ],
+  "uid": "http://purl.org/NET/rdflicense/cc-by4.0",
+  "@type": "Set",
+  "rdfs:label": "Creative Commons CC-BY",
+  "rdfs:seeAlso": {
+    "@id": "http://creativecommons.org/licenses/by/4.0/legalcode"
+  },
+  "dct:alternative": "CC BY",
+  "dct:hasVersion": "4.0",
+  "dct:language": {
+    "@id": "http://www.lexvo.org/page/iso639-3/eng"
+  },
+  "dct:publisher": "Creative Commons",
+  "dct:source": {
+    "@id": "http://creativecommons.org/licenses/by/4.0/"
+  },
+  "dct:title": {
+    "@value": "Creative Commons - Attribution 4.0 International - CC BY 4.0",
+    "@language": "en"
+  },
+  "foaf:logo": {
+    "@id": "http://i.creativecommons.org/l/by/4.0/88x31.png"
+  },
+  "permission": [
+    {
+      "action": [
+        "cc:DerivativeWorks",
+        "cc:Distribution",
+        "cc:Reproduction",
+        "ldr:extraction",
+        "ldr:reutilization"
+      ],
+      "duty": [
+        {
+          "action": [
+            "cc:Attribution",
+            "cc:Notice"
+          ]
+        }
+      ]
+    }
+  ]
+}
