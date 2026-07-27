@@ -9,34 +9,44 @@
       "spdx": "http://spdx.org/rdf/terms#"
     }
   ],
-  "uid": "http://purl.org/NET/rdflicense/cc-by-nc-nd4.0",
+  "uid": "http://purl.org/NET/rdflicense/cc-by-nc-sa4.0",
   "@type": "Set",
-  "spdx:licenseId": "cc-by-nc-nd-4.0",
-  "rdfs:label": "Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)",
+  "spdx:licenseId": "cc-by-nc-sa-4.0",
+  "rdfs:label": "Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)",
   "rdfs:seeAlso": {
-    "@id": "https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode"
+    "@id": "https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode"
   },
-  "dct:alternative": "CC BY-NC-ND",
+  "dct:alternative": "CC BY-NC-SA",
   "dct:hasVersion": "4.0",
   "dct:language": {
     "@id": "http://www.lexvo.org/page/iso639-3/eng"
   },
   "dct:publisher": "Creative Commons",
   "dct:source": {
-    "@id": "https://creativecommons.org/licenses/by-nc-nd/4.0/"
+    "@id": "https://creativecommons.org/licenses/by-nc-sa/4.0/"
   },
   "dct:title": {
-    "@value": "Creative Commons - Attribution-NonCommercial-NoDerivatives 4.0 International - CC BY-NC-ND 4.0",
+    "@value": "Creative Commons - Attribution-NonCommercial-ShareAlike 4.0 International - CC BY-NC-SA 4.0",
     "@language": "en"
   },
   "foaf:logo": {
-    "@id": "https://i.creativecommons.org/l/by-nc-nd/4.0/88x31.png"
+    "@id": "https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png"
   },
   "permission": [
     {
       "action": [
         "cc:Reproduction",
-        "cc:Distribution"
+        "cc:DerivativeWorks"
+      ],
+      "constraint": [
+        {
+          "leftOperand": "purpose",
+          "operator": "eq",
+          "rightOperand": {
+            "@value": "nonCommercial",
+            "@type": "xsd:string"
+          }
+        }
       ],
       "duty": [
         {
@@ -46,14 +56,6 @@
             "cc:ShareAlike"
           ]
         }
-      ]
-    }
-  ],
-  "prohibition": [
-    {
-      "action": [
-        "cc:DerivativeWorks",
-        "cc:CommercialUse"
       ]
     }
   ]

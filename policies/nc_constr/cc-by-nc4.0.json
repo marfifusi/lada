@@ -9,34 +9,45 @@
       "spdx": "http://spdx.org/rdf/terms#"
     }
   ],
-  "uid": "http://purl.org/NET/rdflicense/cc-by-nd4.0",
+  "uid": "http://purl.org/NET/rdflicense/cc-by-nc4.0",
   "@type": "Set",
-  "spdx:licenseId": "cc-by-nd-4.0",
-  "rdfs:label": "Creative Commons Attribution-NoDerivatives 4.0 International (CC BY-ND 4.0)",
+  "spdx:licenseId": "cc-by-nc-4.0",
+  "rdfs:label": "Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)",
   "rdfs:seeAlso": {
-    "@id": "https://creativecommons.org/licenses/by-nd/4.0/legalcode"
+    "@id": "https://creativecommons.org/licenses/by-nc/4.0/legalcode"
   },
-  "dct:alternative": "CC BY-ND",
+  "dct:alternative": "CC BY-NC",
   "dct:hasVersion": "4.0",
   "dct:language": {
     "@id": "http://www.lexvo.org/page/iso639-3/eng"
   },
   "dct:publisher": "Creative Commons",
   "dct:source": {
-    "@id": "https://creativecommons.org/licenses/by-nd/4.0/"
+    "@id": "https://creativecommons.org/licenses/by-nc/4.0/"
   },
   "dct:title": {
-    "@value": "Creative Commons - Attribution-NoDerivatives 4.0 International - CC BY-ND 4.0",
+    "@value": "Creative Commons - Attribution-NonCommercial 4.0 International - CC BY-NC 4.0",
     "@language": "en"
   },
   "foaf:logo": {
-    "@id": "https://i.creativecommons.org/l/by-nd/4.0/88x31.png"
+    "@id": "https://i.creativecommons.org/l/by-nc/4.0/88x31.png"
   },
   "permission": [
     {
       "action": [
         "cc:Reproduction",
-        "cc:Distribution"
+        "cc:Distribution",
+        "cc:DerivativeWorks"
+      ],
+      "constraint": [
+        {
+          "leftOperand": "purpose",
+          "operator": "eq",
+          "rightOperand": {
+            "@value": "nonCommercial",
+            "@type": "xsd:string"
+          }
+        }
       ],
       "duty": [
         {
@@ -45,13 +56,6 @@
             "cc:Notice"
           ]
         }
-      ]
-    }
-  ],
-  "prohibition": [
-    {
-      "action": [
-        "cc:DerivativeWorks"
       ]
     }
   ]

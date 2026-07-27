@@ -38,6 +38,16 @@
         "cc:Reproduction",
         "cc:Distribution"
       ],
+      "constraint": [
+        {
+          "leftOperand": "purpose",
+          "operator": "eq",
+          "rightOperand": {
+            "@value": "nonCommercial",
+            "@type": "xsd:string"
+          }
+        }
+      ],
       "duty": [
         {
           "action": [
@@ -52,8 +62,7 @@
   "prohibition": [
     {
       "action": [
-        "cc:DerivativeWorks",
-        "cc:CommercialUse"
+        "cc:DerivativeWorks"
       ]
     }
   ]
