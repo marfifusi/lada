@@ -42,10 +42,7 @@
         {
           "leftOperand": "purpose",
           "operator": "eq",
-          "rightOperand": {
-            "@value": "nonCommercial",
-            "@type": "xsd:string"
-          }
+          "rightOperand": "nonCommercial"
         }
       ],
       "duty": [
