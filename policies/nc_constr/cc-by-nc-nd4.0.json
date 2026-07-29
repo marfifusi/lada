@@ -42,7 +42,7 @@
         {
           "leftOperand": "purpose",
           "operator": "eq",
-          "rightOperand": "nonCommercial"
+          "rightOperand": "nonCommercialUse"
         }
       ],
       "duty": [
