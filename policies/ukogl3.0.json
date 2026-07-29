@@ -1,0 +1,52 @@
+{
+  "@context": [
+    "http://www.w3.org/ns/odrl.jsonld",
+    {
+      "cc": "http://creativecommons.org/ns#",
+      "dct": "http://purl.org/dc/terms/",
+      "foaf": "http://xmlns.com/foaf/0.1/",
+      "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+      "spdx": "http://spdx.org/rdf/terms#"
+    }
+  ],
+  "uid": "http://purl.org/NET/rdflicense/ukogl3.0",
+  "@type": "Set",
+  "spdx:licenseId": "OGL-UK-3.0",
+  "rdfs:label": "Open Government Licence v3.0 (OGL-UK 3.0)",
+  "rdfs:seeAlso": {
+    "@id": "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+  },
+  "dct:alternative": "OGL-UK",
+  "dct:hasVersion": "3.0",
+  "dct:language": {
+    "@id": "http://www.lexvo.org/page/iso639-3/eng"
+  },
+  "dct:publisher": "The National Archives",
+  "dct:source": {
+    "@id": "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+  },
+  "dct:title": {
+    "@value": "Open Government Licence version 3.0 - OGL-UK 3.0",
+    "@language": "en"
+  },
+  "foaf:logo": {
+    "@id": "https://www.nationalarchives.gov.uk/wp-content/uploads/2014/03/ogl-symbol.jpg"
+  },
+  "permission": [
+    {
+      "action": [
+        "cc:Reproduction",
+        "cc:Distribution",
+        "cc:DerivativeWorks"
+      ],
+      "duty": [
+        {
+          "action": [
+            "cc:Attribution",
+            "cc:Notice"
+          ]
+        }
+      ]
+    }
+  ]
+}
