@@ -6,6 +6,7 @@ from rdflib.namespace import DCTERMS, FOAF, RDF, RDFS
 
 CC = Namespace("http://creativecommons.org/ns#")
 ODRL = Namespace("http://www.w3.org/ns/odrl/2/")
+RDFLICENSE = Namespace("http://purl.org/NET/rdflicense/")
 SPDX = Namespace("http://spdx.org/rdf/terms#")
 
 
@@ -23,6 +24,7 @@ def open_rdflib(file: str):
     graph.bind("odrl", ODRL)
     graph.bind("rdf", RDF)
     graph.bind("rdfs", RDFS)
+    graph.bind("rdflicense", RDFLICENSE)
     graph.bind("spdx", SPDX)
     graph.parse(path, format="json-ld")
 
