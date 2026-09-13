@@ -1,4 +1,5 @@
-from datetime import date, datetime
+import sys
+from datetime import date, datetime, time
 
 from rdflib import Graph
 from rdflib.term import Node
@@ -112,57 +113,126 @@ def _request_parameter_value(request: Graph, left_operand: Node) -> Node | None:
     return None
 
 
-# Confronta data/ora nella request (left) e nella policy (right) con gli operatori ODRL
-# lt, lteq, gt, gteq, eq, neq. I quattro casi:
-# 1. entrambi datetime → confronto sull'ora esatta
-# 2. entrambi date → confronto sul giorno giorno
-# 3. request datetime e policy date → si tronca l'ora della policy e si confronta per giorno
-# 4. request date e policy datetime → False: senza l'ora dell'azione
-#    non siamo sicuri che il vincolo valga, nel dubbio valutiamo la policy non attiva
+# Confronta request (left) e policy (right) come finestre (inizio, fine).
+# lt: tutta left è prima di tutta right; gt: tutta left è dopo tutta right.
+# eq: right contiene left (un istante cade in quel giorno, o finestre uguali).
+#     Se left contiene right non siamo sicuri → False e avviso su stderr.
+# lteq/gteq: lt/gt oppure eq; neq: le finestre non si sovrappongono.
+#     Se left contiene right, eq/neq/lteq/gteq non sono sicuri → False e avviso.
 def _compare_datetimes(left: Node, operator: Node, right: Node) -> bool:
-    left_val = _to_date_or_datetime(left)
-    right_val = _to_date_or_datetime(right)
-    # Request solo date e policy datetime: senza l'ora dell'azione non siamo
-    # sicuri che il vincolo valga, nel dubbio valutiamo la policy non attiva
-    if not isinstance(left_val, datetime) and isinstance(right_val, datetime):
-        return False
-    # In tutti gli altri casi, procedo con il confronto tra date o datetime
-    left_cmp, right_cmp = _align_temporal_granularity(left_val, right_val)
+    left_win = _to_time_window(left)
+    right_win = _to_time_window(right)
+    uncertain = _request_window_contains_policy(left_win, right_win)
     if operator == ODRL.lt:
-        return left_cmp < right_cmp
-    if operator == ODRL.lteq:
-        return left_cmp <= right_cmp
+        return _window_entirely_before(left_win, right_win)
     if operator == ODRL.gt:
-        return left_cmp > right_cmp
-    if operator == ODRL.gteq:
-        return left_cmp >= right_cmp
+        return _window_entirely_after(left_win, right_win)
     if operator == ODRL.eq:
-        return left_cmp == right_cmp
+        if uncertain:
+            _warn_uncertain_containment("eq")
+        return _windows_eq(left_win, right_win)
+    if operator == ODRL.lteq:
+        if uncertain:
+            _warn_uncertain_containment("lteq")
+        return _window_entirely_before(left_win, right_win) or _windows_eq(
+            left_win, right_win
+        )
+    if operator == ODRL.gteq:
+        if uncertain:
+            _warn_uncertain_containment("gteq")
+        return _window_entirely_after(left_win, right_win) or _windows_eq(
+            left_win, right_win
+        )
     if operator == ODRL.neq:
-        return left_cmp != right_cmp
+        if uncertain:
+            _warn_uncertain_containment("neq")
+        return not _windows_overlap(left_win, right_win)
     raise NotImplementedError(f"Constraint operator not supported yet: {operator}")
 
 
-# Interpreta un valore RDF (xsd:date o xsd:dateTime) senza inventare l'ora.
-def _to_date_or_datetime(value: Node) -> date | datetime:
+# Interpreta un valore RDF come finestra (inizio, fine):
+# date → [mezzanotte, fine giornata], datetime → [istante, istante].
+def _to_time_window(value: Node) -> tuple[datetime, datetime]:
     py = value.toPython() if hasattr(value, "toPython") else value
     if isinstance(py, datetime):
-        return py
+        return py, py
     if isinstance(py, date):
-        return py
+        return datetime.combine(py, time.min), datetime.combine(py, time.max)
     text = str(py)
     try:
-        return date.fromisoformat(text)
+        parsed_date = date.fromisoformat(text)
+        return (
+            datetime.combine(parsed_date, time.min),
+            datetime.combine(parsed_date, time.max),
+        )
     except ValueError:
-        return datetime.fromisoformat(text)
+        parsed_dt = datetime.fromisoformat(text)
+        return parsed_dt, parsed_dt
 
 
-# Allinea la granularità: se la policy è solo date, tronca l'ora della request.
-def _align_temporal_granularity(
-    left: date | datetime, right: date | datetime
-) -> tuple[date, date] | tuple[datetime, datetime]:
-    if isinstance(left, datetime) and isinstance(right, datetime):
-        return left, right
-    left_date = left.date() if isinstance(left, datetime) else left
-    right_date = right.date() if isinstance(right, datetime) else right
-    return left_date, right_date
+# True se entrambi gli estremi di left sono < di entrambi gli estremi di right.
+def _window_entirely_before(
+    left: tuple[datetime, datetime], right: tuple[datetime, datetime]
+) -> bool:
+    left_start, left_end = left
+    right_start, right_end = right
+    return (
+        left_start < right_start
+        and left_start < right_end
+        and left_end < right_start
+        and left_end < right_end
+    )
+
+
+# True se entrambi gli estremi di left sono > di entrambi gli estremi di right.
+def _window_entirely_after(
+    left: tuple[datetime, datetime], right: tuple[datetime, datetime]
+) -> bool:
+    left_start, left_end = left
+    right_start, right_end = right
+    return (
+        left_start > right_start
+        and left_start > right_end
+        and left_end > right_start
+        and left_end > right_end
+    )
+
+
+# True se outer contiene inner (estremi compresi).
+def _window_contains(
+    outer: tuple[datetime, datetime], inner: tuple[datetime, datetime]
+) -> bool:
+    return outer[0] <= inner[0] and inner[1] <= outer[1]
+
+
+# True se left contiene right in modo stretto (request-giorno vs policy-istante).
+def _request_window_contains_policy(
+    left: tuple[datetime, datetime], right: tuple[datetime, datetime]
+) -> bool:
+    return _window_contains(left, right) and not _window_contains(right, left)
+
+
+# Avvisa che senza un istante preciso il confronto non è decidibile.
+def _warn_uncertain_containment(operator_name: str) -> None:
+    print(
+        f"Constraint dateTime {operator_name}: la finestra temporale della request contiene "
+        "quella della policy; senza avere un istante preciso non siamo sicuri, "
+        "valutiamo la policy come inattiva.",
+        file=sys.stderr,
+    )
+
+
+# eq: right contiene left. Se left contiene right, non siamo sicuri → False.
+def _windows_eq(
+    left: tuple[datetime, datetime], right: tuple[datetime, datetime]
+) -> bool:
+    if _window_contains(right, left):
+        return True
+    return False
+
+
+# True se le due finestre hanno almeno un istante in comune.
+def _windows_overlap(
+    left: tuple[datetime, datetime], right: tuple[datetime, datetime]
+) -> bool:
+    return left[0] <= right[1] and right[0] <= left[1]
