@@ -112,30 +112,57 @@ def _request_parameter_value(request: Graph, left_operand: Node) -> Node | None:
     return None
 
 
-# Confronta due date/ora con l'operatore ODRL (lt, lteq, gt, gteq, eq, neq).
+# Confronta data/ora nella request (left) e nella policy (right) con gli operatori ODRL
+# lt, lteq, gt, gteq, eq, neq. I quattro casi:
+# 1. entrambi datetime → confronto sull'ora esatta
+# 2. entrambi date → confronto sul giorno giorno
+# 3. request datetime e policy date → si tronca l'ora della policy e si confronta per giorno
+# 4. request date e policy datetime → False: senza l'ora dell'azione
+#    non siamo sicuri che il vincolo valga, nel dubbio valutiamo la policy non attiva
 def _compare_datetimes(left: Node, operator: Node, right: Node) -> bool:
-    left_dt = _to_datetime(left)
-    right_dt = _to_datetime(right)
+    left_val = _to_date_or_datetime(left)
+    right_val = _to_date_or_datetime(right)
+    # Request solo date e policy datetime: senza l'ora dell'azione non siamo
+    # sicuri che il vincolo valga, nel dubbio valutiamo la policy non attiva
+    if not isinstance(left_val, datetime) and isinstance(right_val, datetime):
+        return False
+    # In tutti gli altri casi, procedo con il confronto tra date o datetime
+    left_cmp, right_cmp = _align_temporal_granularity(left_val, right_val)
     if operator == ODRL.lt:
-        return left_dt < right_dt
+        return left_cmp < right_cmp
     if operator == ODRL.lteq:
-        return left_dt <= right_dt
+        return left_cmp <= right_cmp
     if operator == ODRL.gt:
-        return left_dt > right_dt
+        return left_cmp > right_cmp
     if operator == ODRL.gteq:
-        return left_dt >= right_dt
+        return left_cmp >= right_cmp
     if operator == ODRL.eq:
-        return left_dt == right_dt
+        return left_cmp == right_cmp
     if operator == ODRL.neq:
-        return left_dt != right_dt
+        return left_cmp != right_cmp
     raise NotImplementedError(f"Constraint operator not supported yet: {operator}")
 
 
-# Converte un valore RDF (xsd:date o xsd:dateTime) in un datetime Python.
-def _to_datetime(value: Node) -> datetime:
+# Interpreta un valore RDF (xsd:date o xsd:dateTime) senza inventare l'ora.
+def _to_date_or_datetime(value: Node) -> date | datetime:
     py = value.toPython() if hasattr(value, "toPython") else value
     if isinstance(py, datetime):
         return py
     if isinstance(py, date):
-        return datetime.combine(py, datetime.min.time())
-    return datetime.fromisoformat(str(py))
+        return py
+    text = str(py)
+    try:
+        return date.fromisoformat(text)
+    except ValueError:
+        return datetime.fromisoformat(text)
+
+
+# Allinea la granularità: se la policy è solo date, tronca l'ora della request.
+def _align_temporal_granularity(
+    left: date | datetime, right: date | datetime
+) -> tuple[date, date] | tuple[datetime, datetime]:
+    if isinstance(left, datetime) and isinstance(right, datetime):
+        return left, right
+    left_date = left.date() if isinstance(left, datetime) else left
+    right_date = right.date() if isinstance(right, datetime) else right
+    return left_date, right_date
