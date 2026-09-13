@@ -1,4 +1,5 @@
 from rdflib import Namespace
+from rdflib.term import Node
 
 # Prefissi → URI in forma di stringa.
 prefixes = {
@@ -20,3 +21,9 @@ prefixes = {
 
 # Prefissi → Namespace rdflib, derivati dagli URI in prefixes.
 namespaces = {prefix: Namespace(uri) for prefix, uri in prefixes.items()}
+
+# Per ogni leftOperand di un constraint, indica quale describesFeature
+# cercare nei requestParameter di una evaluationRequest
+LEFT_OPERAND_TO_FEATURE: dict[Node, Node] = {
+    namespaces["odrl"].dateTime: namespaces["sotw"].CurrentXSDDateTime,
+}

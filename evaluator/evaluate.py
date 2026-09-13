@@ -3,7 +3,7 @@ from datetime import date, datetime
 from rdflib import Graph
 from rdflib.term import Node
 
-from evaluator.namespaces import namespaces
+from evaluator.vocab import LEFT_OPERAND_TO_FEATURE, namespaces
 
 # Namespace ODRL e SOTW usati nella valutazione delle policy.
 ODRL = namespaces["odrl"]
@@ -61,22 +61,29 @@ def is_permission_active(
     return True
 
 
-# Verifica se un Constraint del Permission è satisfied rispetto alla request (A1-1: dateTime).
+# Verifica se un Constraint è satisfied: il RequestParameter la cui feature
+# è mappata al leftOperand deve soddisfare operator/rightOperand; se manca, False.
 def is_constraint_satisfied(
     policy: Graph,
     constraint: Node,
     request: Graph,
     sotw: Graph,
 ) -> bool:
-    """Per A1-1: dateTime della request < 2018-01-01."""
+    """Il constraint è satisfied sse LEFT_OPERAND_TO_FEATURE collega il
+    leftOperand a un describesFeature presente nella request e il confronto vale.
+    Senza mapping o senza parametro il constraint non è verificabile → False.
+    """
     left = policy.value(constraint, ODRL.leftOperand)
     operator = policy.value(constraint, ODRL.operator)
     right = policy.value(constraint, ODRL.rightOperand)
+    if left is None or operator is None or right is None:
+        return False
+
+    actual = _request_parameter_value(request, left)
+    if actual is None:
+        return False
 
     if left == ODRL.dateTime:
-        actual = _current_datetime(request, sotw)
-        if actual is None or operator is None or right is None:
-            return False
         return _compare_datetimes(actual, operator, right)
 
     raise NotImplementedError(f"Constraint leftOperand not supported yet: {left}")
@@ -93,13 +100,15 @@ def is_duty_fulfilled_or_inactive(
     raise NotImplementedError("Duty evaluation is not implemented yet")
 
 
-# Legge la data/ora corrente (sotw:CurrentXSDDateTime) dalla request o dallo State of the World.
-def _current_datetime(request: Graph, sotw: Graph) -> Node | None:
-    for graph in (request, sotw):
-        for param in graph.subjects(SOTW.describesFeature, SOTW.CurrentXSDDateTime):
-            value = graph.value(param, SOTW.value)
-            if value is not None:
-                return value
+# Cerca il RequestParameter la cui feature è quella mappata al leftOperand.
+def _request_parameter_value(request: Graph, left_operand: Node) -> Node | None:
+    feature = LEFT_OPERAND_TO_FEATURE.get(left_operand)
+    if feature is None:
+        return None
+    for param in request.subjects(SOTW.describesFeature, feature):
+        value = request.value(param, SOTW.value)
+        if value is not None:
+            return value
     return None
 
 
