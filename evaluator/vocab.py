@@ -26,6 +26,7 @@ namespaces = {prefix: Namespace(uri) for prefix, uri in prefixes.items()}
 # cercare nei requestParameter (in ordine di priorità: il primo disponibile vince).
 LEFT_OPERAND_TO_FEATURE: dict[Node, list[Node]] = {
     namespaces["odrl"].dateTime: [
+        namespaces["sotw"].TemporalData,
         namespaces["sotw"].CurrentXSDDateTime,
         namespaces["sotw"].CurrentXSDDate,
     ]
