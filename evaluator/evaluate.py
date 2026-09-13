@@ -1,26 +1,33 @@
 from datetime import date, datetime
 
-from rdflib import Graph, Namespace
+from rdflib import Graph
 from rdflib.term import Node
 
-from evaluator.prefixes import ODRL, SOTW, prefixes
+from evaluator.namespaces import namespaces
+
+# Namespace ODRL e SOTW usati nella valutazione delle policy.
+ODRL = namespaces["odrl"]
+SOTW = namespaces["sotw"]
 
 
 # Apre un file JSON-LD e lo carica come grafo RDF
-def open_rdflib(file: str):
+def open_rdflib(file: str) -> Graph:
     graph = Graph()
     graph.parse(file, format="json-ld")
     # Associa i prefissi noti per stampare URI in forma compatta
-    for prefix, uri in prefixes.items():
-        graph.bind(prefix, Namespace(uri))
+    for prefix, ns in namespaces.items():
+        graph.bind(prefix, ns)
+    return graph
 
+
+# Apre un file JSON-LD e stampa le triple del grafo RDF
+def print_rdflib(file: str) -> None:
+    graph = open_rdflib(file)
     nm = graph.namespace_manager
     print(f"Opened {file}: {len(graph)} triples")
     # n3(nm) rende soggetto, predicato e oggetto con i prefissi
     for s, p, o in graph:
         print(f"  {s.n3(nm)} {p.n3(nm)} {o.n3(nm)}")
-
-    return graph
 
 
 # Valuta se un Permission è active sull'azione della request nello State of the World:
@@ -123,12 +130,3 @@ def _to_datetime(value: Node) -> datetime:
     if isinstance(py, date):
         return datetime.combine(py, datetime.min.time())
     return datetime.fromisoformat(str(py))
-
-
-if __name__ == "__main__":
-    # Caso A1-1: policy A1 + request del 2017-12-19 → permesso active
-    policy = open_rdflib("policies/sample/a1_policy.json")
-    request = open_rdflib("ev_requests/a1-1_request.json")
-    permission = next(policy.objects(None, ODRL.permission))
-    active = is_permission_active(policy, permission, request)
-    print(f"Permission {permission} active: {active}")

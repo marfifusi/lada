@@ -1,6 +1,6 @@
 from rdflib import Namespace
 
-# Prefissi → URI, usati per bind sui grafi e per costruire i Namespace.
+# Prefissi → URI in forma di stringa.
 prefixes = {
     "cc": "http://creativecommons.org/ns#",
     "dct": "http://purl.org/dc/terms/",
@@ -18,5 +18,5 @@ prefixes = {
     "ex_constraint": "http://example.com/constraint/",
 }
 
-ODRL = Namespace(prefixes["odrl"])
-SOTW = Namespace(prefixes["sotw"])
+# Prefissi → Namespace rdflib, derivati dagli URI in prefixes.
+namespaces = {prefix: Namespace(uri) for prefix, uri in prefixes.items()}
