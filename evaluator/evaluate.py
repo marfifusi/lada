@@ -62,8 +62,8 @@ def is_permission_active(
     return True
 
 
-# Verifica se un Constraint è satisfied: il RequestParameter la cui feature
-# è mappata al leftOperand deve soddisfare operator/rightOperand; se manca, False.
+# Verifica se un Constraint è satisfied: il RequestParameter della prima
+# feature mappata al leftOperand deve soddisfare operator/rightOperand; se manca, False.
 def is_constraint_satisfied(
     policy: Graph,
     constraint: Node,
@@ -71,7 +71,8 @@ def is_constraint_satisfied(
     sotw: Graph,
 ) -> bool:
     """Il constraint è satisfied sse LEFT_OPERAND_TO_FEATURE collega il
-    leftOperand a un describesFeature presente nella request e il confronto vale.
+    leftOperand a un describesFeature presente nella request (provati in
+    ordine di priorità) e il confronto vale.
     Senza mapping o senza parametro il constraint non è verificabile → False.
     """
     left = policy.value(constraint, ODRL.leftOperand)
@@ -101,15 +102,17 @@ def is_duty_fulfilled_or_inactive(
     raise NotImplementedError("Duty evaluation is not implemented yet")
 
 
-# Cerca il RequestParameter la cui feature è quella mappata al leftOperand.
+# Cerca il RequestParameter provando i describesFeature mappati al leftOperand,
+# in ordine di priorità; restituisce il primo valore trovato.
 def _request_parameter_value(request: Graph, left_operand: Node) -> Node | None:
-    feature = LEFT_OPERAND_TO_FEATURE.get(left_operand)
-    if feature is None:
+    features = LEFT_OPERAND_TO_FEATURE.get(left_operand)
+    if not features:
         return None
-    for param in request.subjects(SOTW.describesFeature, feature):
-        value = request.value(param, SOTW.value)
-        if value is not None:
-            return value
+    for feature in features:
+        for param in request.subjects(SOTW.describesFeature, feature):
+            value = request.value(param, SOTW.value)
+            if value is not None:
+                return value
     return None
 
 

@@ -22,8 +22,11 @@ prefixes = {
 # Prefissi → Namespace rdflib, derivati dagli URI in prefixes.
 namespaces = {prefix: Namespace(uri) for prefix, uri in prefixes.items()}
 
-# Per ogni leftOperand di un constraint, indica quale describesFeature
-# cercare nei requestParameter di una evaluationRequest
-LEFT_OPERAND_TO_FEATURE: dict[Node, Node] = {
-    namespaces["odrl"].dateTime: namespaces["sotw"].CurrentXSDDateTime,
+# Per ogni leftOperand di un constraint, elenca i describesFeature da
+# cercare nei requestParameter (in ordine di priorità: il primo disponibile vince).
+LEFT_OPERAND_TO_FEATURE: dict[Node, list[Node]] = {
+    namespaces["odrl"].dateTime: [
+        namespaces["sotw"].CurrentXSDDateTime,
+        namespaces["sotw"].CurrentXSDDate,
+    ]
 }
