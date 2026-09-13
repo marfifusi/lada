@@ -10,5 +10,15 @@ def test_a1_1():
     print(f"Permission {permission} active: {active}")
 
 
+# Caso A1-2: policy A1 + request del 2019-12-19 → permesso inactive
+def test_a1_2():
+    policy = open_rdflib("policies/sample/a1_policy.json")
+    request = open_rdflib("ev_requests/a1-2_request.json")
+    permission = next(policy.objects(None, ODRL.permission))
+    active = is_permission_active(policy, permission, request)
+    print(f"Permission {permission} active: {active}")
+
+
 if __name__ == "__main__":
     test_a1_1()
+    test_a1_2()
