@@ -29,30 +29,28 @@ def print_rdflib(file: str) -> None:
         print(f"  {s.n3(nm)} {p.n3(nm)} {o.n3(nm)}")
 
 
-# Valuta se un Permission è active sull'azione della request nello State of the World:
+# Valuta se un Permission è active sull'azione della request:
 # tutti i Constraint sono satisfied e tutti i Duty sono fulfilled oppure inactive.
+# Lo State of the World non arriva come Graph: si interroga via SPARQL da sotw.py.
 def is_permission_active(
     policy: Graph,
     permission: Node,
     request: Graph,
-    sotw: Graph | None = None,
 ) -> bool:
     """Un Permission è active su a in S sse:
     1. tutti i suoi Constraint sono satisfied da a
     2. tutti i suoi Duty sono fulfilled oppure inactive in S rispetto ad a
     """
-    sotw = sotw or Graph()
-
     constraints = list(policy.objects(permission, ODRL.constraint))
     if not all(
-        is_constraint_satisfied(policy, constraint, request, sotw)
+        is_constraint_satisfied(policy, constraint, request)
         for constraint in constraints
     ):
         return False
 
     duties = list(policy.objects(permission, ODRL.duty))
     if not all(
-        is_duty_fulfilled_or_inactive(policy, duty, request, sotw)
+        is_duty_fulfilled_or_inactive(policy, duty, request)
         for duty in duties
     ):
         return False
@@ -66,7 +64,6 @@ def is_constraint_satisfied(
     policy: Graph,
     constraint: Node,
     request: Graph,
-    sotw: Graph,
 ) -> bool:
     """Il constraint è satisfied se LEFT_OPERAND_TO_FEATURE collega il
     leftOperand a un describesFeature presente nella request e il confronto vale.
@@ -93,7 +90,6 @@ def is_duty_fulfilled_or_inactive(
     policy: Graph,
     duty: Node,
     request: Graph,
-    sotw: Graph,
 ) -> bool:
     # A1 non ha duty; da implementare da C1 in poi
     raise NotImplementedError("Duty evaluation is not implemented yet")
