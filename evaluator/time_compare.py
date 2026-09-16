@@ -1,4 +1,3 @@
-import sys
 from datetime import date, datetime, time
 
 from rdflib.term import Node
@@ -9,12 +8,18 @@ from evaluator.vocab import namespaces
 ODRL = namespaces["odrl"]
 
 
+# Confronto dateTime non decidibile: la finestra della request contiene
+# quella della policy e manca un istante preciso.
+class UncertainTimeWindowError(Exception):
+    pass
+
+
 # Confronta request (left) e policy (right) come finestre (inizio, fine).
 # lt: tutta left è prima di tutta right; gt: tutta left è dopo tutta right.
 # eq: right contiene left (un istante cade in quel giorno, o finestre uguali).
-#     Se left contiene right non siamo sicuri → False e avviso su stderr.
+#     Se left contiene right non siamo sicuri → UncertainTimeWindowError.
 # lteq/gteq: lt/gt oppure eq; neq: le finestre non si sovrappongono.
-#     Se left contiene right, eq/neq/lteq/gteq non sono sicuri → False e avviso.
+#     Se left contiene right, eq/neq/lteq/gteq non sono sicuri → UncertainTimeWindowError.
 def compare_datetimes(left: Node, operator: Node, right: Node) -> bool:
     left_win = _to_time_window(left)
     right_win = _to_time_window(right)
@@ -25,23 +30,23 @@ def compare_datetimes(left: Node, operator: Node, right: Node) -> bool:
         return _window_entirely_after(left_win, right_win)
     if operator == ODRL.eq:
         if uncertain:
-            _warn_uncertain_containment("eq")
+            _raise_uncertain_containment("eq")
         return _windows_eq(left_win, right_win)
     if operator == ODRL.lteq:
         if uncertain:
-            _warn_uncertain_containment("lteq")
+            _raise_uncertain_containment("lteq")
         return _window_entirely_before(left_win, right_win) or _windows_eq(
             left_win, right_win
         )
     if operator == ODRL.gteq:
         if uncertain:
-            _warn_uncertain_containment("gteq")
+            _raise_uncertain_containment("gteq")
         return _window_entirely_after(left_win, right_win) or _windows_eq(
             left_win, right_win
         )
     if operator == ODRL.neq:
         if uncertain:
-            _warn_uncertain_containment("neq")
+            _raise_uncertain_containment("neq")
         return not _windows_overlap(left_win, right_win)
     raise NotImplementedError(f"Constraint operator not supported yet: {operator}")
 
@@ -108,17 +113,15 @@ def _request_window_contains_policy(
     return _window_contains(left, right) and not _window_contains(right, left)
 
 
-# Avvisa che senza un istante preciso il confronto non è decidibile.
-def _warn_uncertain_containment(operator_name: str) -> None:
-    print(
+# Solleva UncertainTimeWindowError: senza un istante preciso il confronto non è decidibile.
+def _raise_uncertain_containment(operator_name: str) -> None:
+    raise UncertainTimeWindowError(
         f"Constraint dateTime {operator_name}: la finestra temporale della request contiene "
-        "quella della policy; senza avere un istante preciso non siamo sicuri, "
-        "valutiamo la policy come inattiva.",
-        file=sys.stderr,
+        "quella della policy; senza avere un istante preciso non siamo sicuri."
     )
 
 
-# eq: right contiene left. Se left contiene right, non siamo sicuri → False.
+# eq: right contiene left (istante nella giornata, o finestre uguali).
 def _windows_eq(
     left: tuple[datetime, datetime], right: tuple[datetime, datetime]
 ) -> bool:
