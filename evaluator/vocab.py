@@ -29,5 +29,8 @@ LEFT_OPERAND_TO_FEATURE: dict[Node, list[Node]] = {
         namespaces["sotw"].TemporalData,
         namespaces["sotw"].CurrentXSDDateTime,
         namespaces["sotw"].CurrentXSDDate,
-    ]
+    ],
+    namespaces["odrl"].resolution: [
+        namespaces["sotw"].Resolution,
+    ],
 }

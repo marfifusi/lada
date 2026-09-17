@@ -19,6 +19,26 @@ def test_active_a1_2():
     print(f"Permission {permission} active: {active}")
 
 
+# Caso B1-1: policy B1 + print a 800 dpi → permesso active (nessun constraint/duty)
+def test_active_b1_1():
+    policy = open_rdflib("policies/sample/b1_policy.json")
+    request = open_rdflib("ev_requests/b1-1_request.json")
+    permission = next(policy.objects(None, ODRL.permission))
+    active = is_permission_active(policy, permission, request)
+    print(f"Permission {permission} active: {active}")
+
+
+# Caso B1-2: policy B1 + print a 2400 dpi → permesso active (nessun constraint/duty)
+def test_active_b1_2():
+    policy = open_rdflib("policies/sample/b1_policy.json")
+    request = open_rdflib("ev_requests/b1-2_request.json")
+    permission = next(policy.objects(None, ODRL.permission))
+    active = is_permission_active(policy, permission, request)
+    print(f"Permission {permission} active: {active}")
+
+
 if __name__ == "__main__":
     test_active_a1_1()
     test_active_a1_2()
+    test_active_b1_1()
+    test_active_b1_2()
