@@ -12,6 +12,7 @@ prefixes = {
     "spdx": "http://spdx.org/rdf/terms#",
     "purl": "http://purl.org/NET/rdflicense/",
     "sotw": "https://w3id.org/force/sotw#",
+    "pay": "https://www.epimorphics.com/guide-to-the-payments-ontology/",
     "ex_policy": "http://example.com/policy/",
     "ex_rule": "http://example.com/rule/",
     "ex_document": "http://example.com/document/",
@@ -33,4 +34,10 @@ LEFT_OPERAND_TO_FEATURE: dict[Node, list[Node]] = {
     namespaces["odrl"].resolution: [
         namespaces["sotw"].Resolution,
     ],
+}
+
+# Per ogni leftOperand di una refinement di un duty, indica la proprietà
+# dello SOTW da confrontare con il rightOperand.
+LEFT_OPERAND_TO_SOTW_PROPERTY: dict[Node, Node] = {
+    namespaces["odrl"].payAmount: namespaces["pay"].netAmount,
 }

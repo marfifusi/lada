@@ -1,12 +1,19 @@
 from rdflib import Graph
 from rdflib.term import Node
 
-from evaluator import time_compare as tc
-from evaluator.vocab import LEFT_OPERAND_TO_FEATURE, namespaces
+from evaluator import compare as cmp
+from evaluator import sotw
+from evaluator.vocab import (
+    LEFT_OPERAND_TO_FEATURE,
+    LEFT_OPERAND_TO_SOTW_PROPERTY,
+    namespaces,
+)
 
-# Namespace ODRL e SOTW usati nella valutazione delle policy.
+# Namespace ODRL, RDF, SOTW e pagamenti usati nella valutazione delle policy.
 ODRL = namespaces["odrl"]
+RDF = namespaces["rdf"]
 SOTW = namespaces["sotw"]
+PAY = namespaces["pay"]
 
 
 # Apre un file JSON-LD e lo carica come grafo RDF
@@ -80,19 +87,140 @@ def is_constraint_satisfied(
         return False
 
     if left == ODRL.dateTime:
-        return tc.compare_datetimes(actual, operator, right)
+        return cmp.compare_datetimes(actual, operator, right)
 
     raise NotImplementedError(f"Constraint leftOperand not supported yet: {left}")
 
 
-# Verifica se un Duty è fulfilled oppure inactive; A1 non ha duty, quindi non è ancora implementato.
+# Verifica se un Duty è fulfilled nello SOTW, oppure inactive perché
+# almeno un suo constraint non è satisfied rispetto alla request.
 def is_duty_fulfilled_or_inactive(
     policy: Graph,
     duty: Node,
     request: Graph,
 ) -> bool:
-    # A1 non ha duty; da implementare da C1 in poi
-    raise NotImplementedError("Duty evaluation is not implemented yet")
+    """Un Duty è inactive se ha constraint non satisfied; altrimenti
+    deve essere fulfilled da un'azione compiuta nello SOTW.
+    """
+    constraints = list(policy.objects(duty, ODRL.constraint))
+    # Duty inactive (constraint non satisfied) ⇒ la permission può restare active
+    if constraints and not all(
+        is_constraint_satisfied(policy, constraint, request)
+        for constraint in constraints
+    ):
+        return True
+    return _is_duty_fulfilled(policy, duty)
+
+
+# Un Duty è fulfilled se nello SOTW esiste un'azione compiuta che
+# corrisponde al tipo di azione e alle refinement della duty.
+def _is_duty_fulfilled(policy: Graph, duty: Node) -> bool:
+    action = policy.value(duty, ODRL.action)
+    if action is None:
+        return False
+    # C1 usa un nodo azione con rdf:value, non l'URI odrl:compensate diretto
+    action_type = _action_type(policy, action)
+    if action_type == ODRL.compensate:
+        return _is_compensate_fulfilled(policy, duty, action)
+    raise NotImplementedError(f"Duty action not supported yet: {action_type}")
+
+
+# Restituisce il tipo di azione ODRL (rdf:value se presente, altrimenti il nodo).
+def _action_type(policy: Graph, action: Node) -> Node:
+    value = policy.value(action, RDF.value)
+    # Senza rdf:value l'azione è già l'URI ODRL (es. odrl:play sulla permission)
+    return value if value is not None else action
+
+
+# Il compensate è fulfilled se un Payment collegato alla duty soddisfa
+# tutte le refinement e ha come payee il beneficiario (assigner).
+def _is_compensate_fulfilled(policy: Graph, duty: Node, action: Node) -> bool:
+    beneficiary = _compensate_beneficiary(policy, duty, action)
+    refinements = list(policy.objects(action, ODRL.refinement))
+    # SPARQL su sotw.py: solo i Payment con conditionId = URI della duty
+    for payment in sotw.payments_for_condition(duty):
+        # Il payer può essere un terzo; conta il beneficiario (payee)
+        if beneficiary is not None and not _same_resource(
+            payment["payee"], beneficiary
+        ):
+            continue
+        # Un solo Payment deve soddisfare tutte le refinement insieme
+        if all(
+            _refinement_satisfied_by_payment(policy, refinement, payment)
+            for refinement in refinements
+        ):
+            return True
+    return False
+
+
+# Beneficiario del compensate: odrl:compensatedParty se c'è, altrimenti
+# l'assigner della permission che contiene la duty.
+def _compensate_beneficiary(
+    policy: Graph, duty: Node, action: Node
+) -> Node | None:
+    compensated = policy.value(action, ODRL.compensatedParty)
+    if compensated is not None:
+        return compensated
+    # C1 non dichiara compensatedParty: i soldi vanno all'assigner (sony)
+    for permission in policy.subjects(ODRL.duty, duty):
+        assigner = policy.value(permission, ODRL.assigner)
+        if assigner is not None:
+            return assigner
+    return None
+
+
+# Confronta una refinement col Payment: payAmount vs netAmount, unit vs currency.
+def _refinement_satisfied_by_payment(
+    policy: Graph, refinement: Node, payment: dict[str, Node | None]
+) -> bool:
+    left = policy.value(refinement, ODRL.leftOperand)
+    operator = policy.value(refinement, ODRL.operator)
+    right = policy.value(refinement, ODRL.rightOperand)
+    if left is None or operator is None or right is None:
+        return False
+    # payAmount non è una proprietà RDF del Payment: va tradotto (→ netAmount)
+    prop = LEFT_OPERAND_TO_SOTW_PROPERTY.get(left)
+    if prop is None:
+        raise NotImplementedError(
+            f"Refinement leftOperand not supported yet: {left}"
+        )
+    actual = _payment_property_value(payment, prop)
+    if actual is None:
+        return False
+    if prop == PAY.netAmount:
+        if not cmp.compare_numbers(actual, operator, right):
+            return False
+        # odrl:unit della refinement corrisponde a pay:currency nello SOTW
+        unit = policy.value(refinement, ODRL.unit)
+        if unit is not None and not _same_resource(payment["currency"], unit):
+            return False
+        return True
+    raise NotImplementedError(f"Payment property not supported yet: {prop}")
+
+
+# Legge dal Payment il valore della proprietà SOTW mappata al leftOperand.
+def _payment_property_value(
+    payment: dict[str, Node | None], prop: Node
+) -> Node | None:
+    # Il dict espone "amount", non l'URI pay:netAmount usato nel mapping
+    if prop == PAY.netAmount:
+        return payment["amount"]
+    return None
+
+
+# Confronta URI o literal come stesso identificatore: nello SOTW payee e
+# currency arrivano spesso come stringhe, nella policy come URI.
+def _same_resource(left: Node | None, right: Node | None) -> bool:
+    if left is None or right is None:
+        return False
+    # URIRef vs Literal con lo stesso testo (es. payee nello SOTW) devono coincidere
+    return _node_text(left) == _node_text(right)
+
+
+# Normalizza un nodo RDF a stringa (URI o valore del literal).
+def _node_text(node: Node) -> str:
+    py = node.toPython() if hasattr(node, "toPython") else node
+    return str(py)
 
 
 # Cerca il RequestParameter provando i describesFeature mappati al leftOperand,

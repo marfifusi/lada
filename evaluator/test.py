@@ -1,3 +1,4 @@
+from evaluator import sotw
 from evaluator.evaluate import ODRL, is_permission_active, open_rdflib
 
 
@@ -37,8 +38,30 @@ def test_active_b1_2():
     print(f"Permission {permission} active: {active}")
 
 
+# Caso C1-1: policy C1 + SOTW senza pagamento → permesso inactive
+def test_active_c1_1():
+    sotw.set_source("policies/samples/sotws/c1-1_sotw.json")
+    policy = open_rdflib("policies/samples/policies/c1_policy.json")
+    request = open_rdflib("policies/samples/ev_requests/c1-1_request.json")
+    permission = next(policy.objects(None, ODRL.permission))
+    active = is_permission_active(policy, permission, request)
+    print(f"Permission {permission} active: {active}")
+
+
+# Caso C1-2: policy C1 + pagamento 5.00 EUR nello SOTW → permesso active
+def test_active_c1_2():
+    sotw.set_source("policies/samples/sotws/c1-2_sotw.json")
+    policy = open_rdflib("policies/samples/policies/c1_policy.json")
+    request = open_rdflib("policies/samples/ev_requests/c1-2_request.json")
+    permission = next(policy.objects(None, ODRL.permission))
+    active = is_permission_active(policy, permission, request)
+    print(f"Permission {permission} active: {active}")
+
+
 if __name__ == "__main__":
     test_active_a1_1()
     test_active_a1_2()
     test_active_b1_1()
     test_active_b1_2()
+    test_active_c1_1()
+    test_active_c1_2()

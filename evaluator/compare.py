@@ -1,10 +1,12 @@
+# Logica di confronto tra grandezze (dateTime, numeri, …).
 from datetime import date, datetime, time
+from decimal import Decimal
 
 from rdflib.term import Node
 
 from evaluator.vocab import namespaces
 
-# Namespace ODRL usato nel confronto degli operatori dateTime.
+# Namespace ODRL usato nel confronto degli operatori (dateTime e numeri).
 ODRL = namespaces["odrl"]
 
 
@@ -135,3 +137,31 @@ def _windows_overlap(
     left: tuple[datetime, datetime], right: tuple[datetime, datetime]
 ) -> bool:
     return left[0] <= right[1] and right[0] <= left[1]
+
+
+# Confronta due numeri RDF con l'operatore ODRL (eq, neq, lt, gt, lteq, gteq).
+def compare_numbers(left: Node, operator: Node, right: Node) -> bool:
+    left_n = _to_decimal(left)
+    right_n = _to_decimal(right)
+    if operator == ODRL.eq:
+        return left_n == right_n
+    if operator == ODRL.neq:
+        return left_n != right_n
+    if operator == ODRL.lt:
+        return left_n < right_n
+    if operator == ODRL.gt:
+        return left_n > right_n
+    if operator == ODRL.lteq:
+        return left_n <= right_n
+    if operator == ODRL.gteq:
+        return left_n >= right_n
+    raise NotImplementedError(f"Numeric operator not supported yet: {operator}")
+
+
+# Interpreta un valore RDF come Decimal (xsd:decimal, int o stringa numerica).
+def _to_decimal(value: Node) -> Decimal:
+    # rdflib: xsd:decimal → Decimal, gli altri tipi numerici → int/float/str
+    py = value.toPython() if hasattr(value, "toPython") else value
+    if isinstance(py, Decimal):
+        return py
+    return Decimal(str(py))
