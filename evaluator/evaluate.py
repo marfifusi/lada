@@ -140,9 +140,7 @@ def _is_compensate_fulfilled(policy: Graph, duty: Node, action: Node) -> bool:
     # SPARQL su sotw.py: solo i Payment con conditionId = URI della duty
     for payment in sotw.payments_for_condition(duty):
         # Il payer può essere un terzo; conta il beneficiario (payee)
-        if beneficiary is not None and not _same_resource(
-            payment["payee"], beneficiary
-        ):
+        if beneficiary is not None and payment["payee"] != beneficiary:
             continue
         # Un solo Payment deve soddisfare tutte le refinement insieme
         if all(
@@ -192,7 +190,7 @@ def _refinement_satisfied_by_payment(
             return False
         # odrl:unit della refinement corrisponde a pay:currency nello SOTW
         unit = policy.value(refinement, ODRL.unit)
-        if unit is not None and not _same_resource(payment["currency"], unit):
+        if unit is not None and payment["currency"] != unit:
             return False
         return True
     raise NotImplementedError(f"Payment property not supported yet: {prop}")
@@ -206,21 +204,6 @@ def _payment_property_value(
     if prop == PAY.netAmount:
         return payment["amount"]
     return None
-
-
-# Confronta URI o literal come stesso identificatore: nello SOTW payee e
-# currency arrivano spesso come stringhe, nella policy come URI.
-def _same_resource(left: Node | None, right: Node | None) -> bool:
-    if left is None or right is None:
-        return False
-    # URIRef vs Literal con lo stesso testo (es. payee nello SOTW) devono coincidere
-    return _node_text(left) == _node_text(right)
-
-
-# Normalizza un nodo RDF a stringa (URI o valore del literal).
-def _node_text(node: Node) -> str:
-    py = node.toPython() if hasattr(node, "toPython") else node
-    return str(py)
 
 
 # Cerca il RequestParameter provando i describesFeature mappati al leftOperand,

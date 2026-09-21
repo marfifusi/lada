@@ -10,11 +10,11 @@
     "@id": "ex:C12Context-A",
     "@type": "pay:Payment",
     "conditionId": "http://example.com/condition/1",
-    "pay:payer": "http://example.com/party/billie",
-    "pay:payee": "http://example.com/party/sony",
+    "pay:payer": { "@id": "http://example.com/party/billie" },
+    "pay:payee": { "@id": "http://example.com/party/sony" },
     "pay:reference": "UGQEHUR6",
     "pay:netAmount": { "@value": "5.00", "@type": "xsd:decimal" },
-    "pay:currency": "https://dbpedia.org/resource/Euro",
+    "pay:currency": { "@id": "https://dbpedia.org/resource/Euro" },
     "pay:paymentDate": { "@value": "2025-07-23 00:00:00", "@type": "xsd:dateTime" }
   }
 }
