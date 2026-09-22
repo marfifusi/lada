@@ -13,6 +13,7 @@ prefixes = {
     "purl": "http://purl.org/NET/rdflicense/",
     "sotw": "https://w3id.org/force/sotw#",
     "pay": "https://www.epimorphics.com/guide-to-the-payments-ontology/",
+    "ex": "http://example.com/ns#",
     "ex_policy": "http://example.com/policy/",
     "ex_rule": "http://example.com/rule/",
     "ex_document": "http://example.com/document/",
@@ -33,6 +34,11 @@ LEFT_OPERAND_TO_FEATURE: dict[Node, list[Node]] = {
     ],
     namespaces["odrl"].resolution: [
         namespaces["sotw"].Resolution,
+    ],
+    namespaces["ex"].dayOfWeek: [
+        namespaces["sotw"].CurrentXSDDateTime,
+        namespaces["sotw"].CurrentXSDDate,
+        namespaces["sotw"].TemporalData,
     ],
 }
 

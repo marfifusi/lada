@@ -9,11 +9,12 @@ from evaluator.vocab import (
     namespaces,
 )
 
-# Namespace ODRL, RDF, SOTW e pagamenti usati nella valutazione delle policy.
+# Namespace ODRL, RDF, SOTW, pagamenti e vocabolario esempio (ex:dayOfWeek).
 ODRL = namespaces["odrl"]
 RDF = namespaces["rdf"]
 SOTW = namespaces["sotw"]
 PAY = namespaces["pay"]
+EX = namespaces["ex"]
 
 
 # Apre un file JSON-LD e lo carica come grafo RDF
@@ -88,6 +89,12 @@ def is_constraint_satisfied(
 
     if left == ODRL.dateTime:
         return cmp.compare_datetimes(actual, operator, right)
+
+    # C2: ex:dayOfWeek si ricava dal datetime della request, poi eq case-insensitive
+    if left == EX.dayOfWeek:
+        return cmp.compare_strings(
+            cmp.weekday_from_datetime(actual), operator, right
+        )
 
     raise NotImplementedError(f"Constraint leftOperand not supported yet: {left}")
 

@@ -58,6 +58,36 @@ def test_active_c1_2():
     print(f"Permission {permission} active: {active}")
 
 
+# Caso C2-1: martedì, SOTW vuoto → duty inactive → permesso active
+def test_active_c2_1():
+    sotw.set_source("policies/samples/sotws/c2-1_sotw.json")
+    policy = open_rdflib("policies/samples/policies/c2_policy.json")
+    request = open_rdflib("policies/samples/ev_requests/c2-1_request.json")
+    permission = next(policy.objects(None, ODRL.permission))
+    active = is_permission_active(policy, permission, request)
+    print(f"Permission {permission} active: {active}")
+
+
+# Caso C2-2: domenica, SOTW vuoto → duty active not-set → permesso inactive
+def test_active_c2_2():
+    sotw.set_source("policies/samples/sotws/c2-2_sotw.json")
+    policy = open_rdflib("policies/samples/policies/c2_policy.json")
+    request = open_rdflib("policies/samples/ev_requests/c2-2_request.json")
+    permission = next(policy.objects(None, ODRL.permission))
+    active = is_permission_active(policy, permission, request)
+    print(f"Permission {permission} active: {active}")
+
+
+# Caso C2-3: domenica, pagamento 5.00 EUR → duty fulfilled → permesso active
+def test_active_c2_3():
+    sotw.set_source("policies/samples/sotws/c2-3_sotw.json")
+    policy = open_rdflib("policies/samples/policies/c2_policy.json")
+    request = open_rdflib("policies/samples/ev_requests/c2-3_request.json")
+    permission = next(policy.objects(None, ODRL.permission))
+    active = is_permission_active(policy, permission, request)
+    print(f"Permission {permission} active: {active}")
+
+
 if __name__ == "__main__":
     test_active_a1_1()
     test_active_a1_2()
@@ -65,3 +95,6 @@ if __name__ == "__main__":
     test_active_b1_2()
     test_active_c1_1()
     test_active_c1_2()
+    test_active_c2_1()
+    test_active_c2_2()
+    test_active_c2_3()

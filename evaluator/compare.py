@@ -6,8 +6,19 @@ from rdflib.term import Node
 
 from evaluator.vocab import namespaces
 
-# Namespace ODRL usato nel confronto degli operatori (dateTime e numeri).
+# Namespace ODRL usato nel confronto degli operatori (dateTime, numeri, stringhe).
 ODRL = namespaces["odrl"]
+
+# Nomi inglesi (Monday=0 … Sunday=6), fissi e indipendenti dal locale.
+_WEEKDAYS_EN = (
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday",
+)
 
 
 # Confronto dateTime non decidibile: la finestra della request contiene
@@ -156,6 +167,37 @@ def compare_numbers(left: Node, operator: Node, right: Node) -> bool:
     if operator == ODRL.gteq:
         return left_n >= right_n
     raise NotImplementedError(f"Numeric operator not supported yet: {operator}")
+
+
+# Giorno della settimana in inglese (Monday…Sunday) da un RDF xsd:date o xsd:dateTime.
+def weekday_from_datetime(value: Node) -> str:
+    start, end = _to_time_window(value)
+    # Una finestra su più giorni non ha un unico weekday.
+    if start.date() != end.date():
+        raise UncertainTimeWindowError(
+            "weekday: la finestra temporale copre più giorni; "
+            "senza un istante o una data precisi non siamo sicuri."
+        )
+    return _WEEKDAYS_EN[start.weekday()]
+
+
+# Confronta due stringhe con l'operatore ODRL, ignorando maiuscole/minuscole.
+def compare_strings(left: Node | str, operator: Node, right: Node | str) -> bool:
+    left_s = _to_str(left).casefold()
+    right_s = _to_str(right).casefold()
+    if operator == ODRL.eq:
+        return left_s == right_s
+    if operator == ODRL.neq:
+        return left_s != right_s
+    raise NotImplementedError(f"String operator not supported yet: {operator}")
+
+
+# Interpreta un valore RDF o una stringa Python come testo.
+def _to_str(value: Node | str) -> str:
+    if isinstance(value, str):
+        return value
+    py = value.toPython() if hasattr(value, "toPython") else value
+    return str(py)
 
 
 # Interpreta un valore RDF come Decimal (xsd:decimal, int o stringa numerica).
