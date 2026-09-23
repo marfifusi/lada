@@ -129,8 +129,8 @@ def _request_window_contains_policy(
 # Solleva UncertainTimeWindowError: senza un istante preciso il confronto non è decidibile.
 def _raise_uncertain_containment(operator_name: str) -> None:
     raise UncertainTimeWindowError(
-        f"Constraint dateTime {operator_name}: la finestra temporale della request contiene "
-        "quella della policy; senza avere un istante preciso non siamo sicuri."
+        f"Constraint dateTime {operator_name}: the request time window contains "
+        "the policy time window; without an exact instant the comparison is uncertain."
     )
 
 
@@ -175,8 +175,8 @@ def weekday_from_datetime(value: Node) -> str:
     # Una finestra su più giorni non ha un unico weekday.
     if start.date() != end.date():
         raise UncertainTimeWindowError(
-            "weekday: la finestra temporale copre più giorni; "
-            "senza un istante o una data precisi non siamo sicuri."
+            "weekday: the time window spans more than one day; "
+            "without an exact instant or date the weekday is uncertain."
         )
     return _WEEKDAYS_EN[start.weekday()]
 
