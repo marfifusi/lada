@@ -1,4 +1,4 @@
-# Logica di confronto tra grandezze (dateTime, numeri, …).
+# Logica di confronto tra grandezze (finestre temporali, giorno della settimana, numeri, …).
 from datetime import date, datetime, time
 from decimal import Decimal
 
@@ -8,6 +8,9 @@ from evaluator.vocab import namespaces
 
 # Namespace ODRL usato nel confronto degli operatori (dateTime, numeri, stringhe).
 ODRL = namespaces["odrl"]
+
+# Nome locale del leftOperand «giorno della settimana», indipendente dal namespace.
+_WEEKDAY_LOCAL_NAME = "dayOfWeek"
 
 # Nomi inglesi (Monday=0 … Sunday=6), fissi e indipendenti dal locale.
 _WEEKDAYS_EN = (
@@ -148,6 +151,42 @@ def _windows_overlap(
     left: tuple[datetime, datetime], right: tuple[datetime, datetime]
 ) -> bool:
     return left[0] <= right[1] and right[0] <= left[1]
+
+
+# Confronto temporale su un valore date o dateTime.
+# odrl:dateTime confronta le finestre; un leftOperand dayOfWeek ricava il weekday e confronta stringhe.
+def compare_temporal(
+    left_operand: Node, actual: Node, operator: Node, right: Node
+) -> bool:
+    if is_weekday_left_operand(left_operand):
+        return compare_strings(weekday_from_datetime(actual), operator, right)
+    if is_datetime_left_operand(left_operand):
+        return compare_datetimes(actual, operator, right)
+    raise NotImplementedError(
+        f"Temporal leftOperand not supported yet: {left_operand}"
+    )
+
+
+# True se il leftOperand è odrl:dateTime (confronto fra finestre temporali).
+def is_datetime_left_operand(left: Node) -> bool:
+    return left == ODRL.dateTime
+
+
+# True se il leftOperand è un giorno della settimana, in qualunque namespace.
+def is_weekday_left_operand(left: Node) -> bool:
+    return _local_name(left) == _WEEKDAY_LOCAL_NAME
+
+
+# True se il leftOperand si valuta su data o dateTime (finestra oppure weekday).
+def is_temporal_left_operand(left: Node) -> bool:
+    return is_datetime_left_operand(left) or is_weekday_left_operand(left)
+
+
+# Nome locale di un termine RDF: il tratto dopo l'ultimo # o /.
+def _local_name(term: Node) -> str:
+    text = str(term)
+    cut = max(text.rfind("#"), text.rfind("/"))
+    return text[cut + 1 :]
 
 
 # Confronta due numeri RDF con l'operatore ODRL (eq, neq, lt, gt, lteq, gteq).

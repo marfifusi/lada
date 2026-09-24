@@ -24,21 +24,21 @@ prefixes = {
 # Prefissi → Namespace rdflib, derivati dagli URI in prefixes.
 namespaces = {prefix: Namespace(uri) for prefix, uri in prefixes.items()}
 
+# Feature temporali ammesse in una EvaluationRequest: solo data e dateTime.
+# dayOfWeek non è un parametro della request: si ricava da questi valori.
+REQUEST_TEMPORAL_FEATURES: list[Node] = [
+    namespaces["sotw"].TemporalData,
+    namespaces["sotw"].CurrentXSDDateTime,
+    namespaces["sotw"].CurrentXSDDate,
+]
+
 # Per ogni leftOperand di un constraint, elenca i describesFeature da
 # cercare nei requestParameter (in ordine di priorità: il primo disponibile vince).
+# I leftOperand dayOfWeek non stanno qui: usano REQUEST_TEMPORAL_FEATURES.
 LEFT_OPERAND_TO_FEATURE: dict[Node, list[Node]] = {
-    namespaces["odrl"].dateTime: [
-        namespaces["sotw"].TemporalData,
-        namespaces["sotw"].CurrentXSDDateTime,
-        namespaces["sotw"].CurrentXSDDate,
-    ],
+    namespaces["odrl"].dateTime: REQUEST_TEMPORAL_FEATURES,
     namespaces["odrl"].resolution: [
         namespaces["sotw"].Resolution,
-    ],
-    namespaces["ex"].dayOfWeek: [
-        namespaces["sotw"].CurrentXSDDateTime,
-        namespaces["sotw"].CurrentXSDDate,
-        namespaces["sotw"].TemporalData,
     ],
 }
 

@@ -2,6 +2,7 @@ from rdflib import Graph
 from rdflib.term import Node
 
 from evaluator import sotw
+from evaluator import vocab
 from evaluator.rule import action_class
 from evaluator.rule import compare as cmp
 from evaluator.vocab import (
@@ -10,11 +11,10 @@ from evaluator.vocab import (
     namespaces,
 )
 
-# Namespace ODRL, SOTW, pagamenti e vocabolario esempio (ex:dayOfWeek).
+# Namespace ODRL, SOTW e pagamenti.
 ODRL = namespaces["odrl"]
 SOTW = namespaces["sotw"]
 PAY = namespaces["pay"]
-EX = namespaces["ex"]
 
 
 # Valuta se un Permission è active sull'azione della request:
@@ -46,16 +46,16 @@ def is_permission_active(
     return True
 
 
-# Verifica se un Constraint è satisfied: il RequestParameter della prima
-# feature mappata al leftOperand deve soddisfare operator/rightOperand; se manca, False.
+# Verifica se un Constraint è satisfied: il valore della request deve
+# soddisfare operator/rightOperand; se manca, False.
 def is_constraint_satisfied(
     policy: Graph,
     constraint: Node,
     request: Graph,
 ) -> bool:
-    """Il constraint è satisfied se LEFT_OPERAND_TO_FEATURE collega il
-    leftOperand a un describesFeature presente nella request e il confronto vale.
-    Senza mapping o senza parametro il constraint non è verificabile → False.
+    """Il constraint è satisfied se il leftOperand ha un valore nella request
+    e il confronto vale. I leftOperand temporali (dateTime e dayOfWeek) leggono
+    solo data e dateTime. Senza valore il constraint non è verificabile → False.
     """
     left = policy.value(constraint, ODRL.leftOperand)
     operator = policy.value(constraint, ODRL.operator)
@@ -63,18 +63,12 @@ def is_constraint_satisfied(
     if left is None or operator is None or right is None:
         return False
 
+    if cmp.is_temporal_left_operand(left):
+        return temporal_holds(request, left, operator, right)
+
     actual = _request_parameter_value(request, left)
     if actual is None:
         return False
-
-    if left == ODRL.dateTime:
-        return cmp.compare_datetimes(actual, operator, right)
-
-    # C2: ex:dayOfWeek si ricava dal datetime della request, poi eq case-insensitive
-    if left == EX.dayOfWeek:
-        return cmp.compare_strings(
-            cmp.weekday_from_datetime(actual), operator, right
-        )
 
     raise NotImplementedError(f"Constraint leftOperand not supported yet: {left}")
 
@@ -96,25 +90,27 @@ def is_duty_fulfilled_or_inactive(
         for constraint in constraints
     ):
         return True
-    return _is_duty_fulfilled(policy, duty)
+    return _is_duty_fulfilled(policy, duty, request)
 
 
 # Un Duty è fulfilled se nello SOTW esiste un'azione compiuta che
 # corrisponde al tipo di azione e alle refinement della duty.
-def _is_duty_fulfilled(policy: Graph, duty: Node) -> bool:
+def _is_duty_fulfilled(policy: Graph, duty: Node, request: Graph) -> bool:
     action = policy.value(duty, ODRL.action)
     if action is None:
         return False
     # C1 usa un nodo azione con rdf:value, non l'URI odrl:compensate diretto
     action_type = action_class.action_type(policy, action)
     if action_type == ODRL.compensate:
-        return _is_compensate_fulfilled(policy, duty, action)
+        return _is_compensate_fulfilled(policy, duty, action, request)
     raise NotImplementedError(f"Duty action not supported yet: {action_type}")
 
 
 # Il compensate è fulfilled se un Payment collegato alla duty soddisfa
 # tutte le refinement e ha come payee il beneficiario (assigner).
-def _is_compensate_fulfilled(policy: Graph, duty: Node, action: Node) -> bool:
+def _is_compensate_fulfilled(
+    policy: Graph, duty: Node, action: Node, request: Graph
+) -> bool:
     beneficiary = _compensate_beneficiary(policy, duty, action)
     refinements = list(policy.objects(action, ODRL.refinement))
     # SPARQL su sotw.py: solo i Payment con conditionId = URI della duty
@@ -124,7 +120,9 @@ def _is_compensate_fulfilled(policy: Graph, duty: Node, action: Node) -> bool:
             continue
         # Un solo Payment deve soddisfare tutte le refinement insieme
         if all(
-            _refinement_satisfied_by_payment(policy, refinement, payment)
+            _refinement_satisfied_by_payment(
+                policy, refinement, payment, request
+            )
             for refinement in refinements
         ):
             return True
@@ -149,13 +147,19 @@ def _compensate_beneficiary(
 
 # Confronta una refinement col Payment: payAmount vs netAmount, unit vs currency.
 def _refinement_satisfied_by_payment(
-    policy: Graph, refinement: Node, payment: dict[str, Node | None]
+    policy: Graph,
+    refinement: Node,
+    payment: dict[str, Node | None],
+    request: Graph,
 ) -> bool:
     left = policy.value(refinement, ODRL.leftOperand)
     operator = policy.value(refinement, ODRL.operator)
     right = policy.value(refinement, ODRL.rightOperand)
     if left is None or operator is None or right is None:
         return False
+    # dateTime e dayOfWeek non sono proprietà del Payment: usano data/dateTime della request
+    if cmp.is_temporal_left_operand(left):
+        return temporal_holds(request, left, operator, right)
     # payAmount non è una proprietà RDF del Payment: va tradotto (→ netAmount)
     prop = LEFT_OPERAND_TO_SOTW_PROPERTY.get(left)
     if prop is None:
@@ -186,12 +190,33 @@ def _payment_property_value(
     return None
 
 
+# True se data o dateTime della request soddisfano il leftOperand temporale.
+# dayOfWeek non si legge dalla request: compare_temporal lo ricava da quei valori.
+def temporal_holds(
+    request: Graph, left: Node, operator: Node, right: Node
+) -> bool:
+    actual = request_temporal_value(request)
+    if actual is None:
+        return False
+    return cmp.compare_temporal(left, actual, operator, right)
+
+
+# Data o dateTime della request, in ordine di REQUEST_TEMPORAL_FEATURES.
+def request_temporal_value(request: Graph) -> Node | None:
+    return _value_for_features(request, vocab.REQUEST_TEMPORAL_FEATURES)
+
+
 # Cerca il RequestParameter provando i describesFeature mappati al leftOperand,
 # in ordine di priorità; restituisce il primo valore trovato.
 def _request_parameter_value(request: Graph, left_operand: Node) -> Node | None:
     features = LEFT_OPERAND_TO_FEATURE.get(left_operand)
     if not features:
         return None
+    return _value_for_features(request, features)
+
+
+# Primo sotw:value tra i RequestParameter che descrivono una delle feature, in ordine.
+def _value_for_features(request: Graph, features: list[Node]) -> Node | None:
     for feature in features:
         for param in request.subjects(SOTW.describesFeature, feature):
             value = request.value(param, SOTW.value)
