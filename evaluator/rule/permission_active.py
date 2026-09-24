@@ -2,18 +2,15 @@ from rdflib import Graph
 from rdflib.term import Node
 
 from evaluator import sotw
-from evaluator import vocab
 from evaluator.rule import action_class
 from evaluator.rule import compare as cmp
 from evaluator.vocab import (
-    LEFT_OPERAND_TO_FEATURE,
     LEFT_OPERAND_TO_SOTW_PROPERTY,
     namespaces,
 )
 
 # Namespace ODRL, SOTW e pagamenti.
 ODRL = namespaces["odrl"]
-SOTW = namespaces["sotw"]
 PAY = namespaces["pay"]
 
 
@@ -54,8 +51,9 @@ def is_constraint_satisfied(
     request: Graph,
 ) -> bool:
     """Il constraint è satisfied se il leftOperand ha un valore nella request
-    e il confronto vale. I leftOperand temporali (dateTime e dayOfWeek) leggono
-    solo data e dateTime. Senza valore il constraint non è verificabile → False.
+    e il confronto vale. dateTime legge la requestAssertion; dayOfWeek
+    ricava il giorno da data e dateTime. Due interi si confrontano come numeri.
+    Senza valore → False.
     """
     left = policy.value(constraint, ODRL.leftOperand)
     operator = policy.value(constraint, ODRL.operator)
@@ -66,9 +64,11 @@ def is_constraint_satisfied(
     if cmp.is_temporal_left_operand(left):
         return temporal_holds(request, left, operator, right)
 
-    actual = _request_parameter_value(request, left)
+    actual = _request_assertion(request, left)
     if actual is None:
         return False
+    if cmp.is_integer(actual) and cmp.is_integer(right):
+        return cmp.compare_numbers(actual, operator, right)
 
     raise NotImplementedError(f"Constraint leftOperand not supported yet: {left}")
 
@@ -157,7 +157,7 @@ def _refinement_satisfied_by_payment(
     right = policy.value(refinement, ODRL.rightOperand)
     if left is None or operator is None or right is None:
         return False
-    # dateTime e dayOfWeek non sono proprietà del Payment: usano data/dateTime della request
+    # dateTime e dayOfWeek non sono proprietà del Payment: usano la requestAssertion
     if cmp.is_temporal_left_operand(left):
         return temporal_holds(request, left, operator, right)
     # payAmount non è una proprietà RDF del Payment: va tradotto (→ netAmount)
@@ -190,36 +190,23 @@ def _payment_property_value(
     return None
 
 
-# True se data o dateTime della request soddisfano il leftOperand temporale.
-# dayOfWeek non si legge dalla request: compare_temporal lo ricava da quei valori.
+# rightOperand dell'asserzione vera (operatore eq) con quel leftOperand; None se manca.
+def _request_assertion(request: Graph, left: Node) -> Node | None:
+    for assertion in request.subjects(ODRL.leftOperand, left):
+        if request.value(assertion, ODRL.operator) != ODRL.eq:
+            continue
+        value = request.value(assertion, ODRL.rightOperand)
+        if value is not None:
+            return value
+    return None
+
+
+# True se data o dateTime della requestAssertion odrl:dateTime soddisfano il leftOperand.
+# dayOfWeek non ha un'asserzione propria: il giorno si ricava da quel valore.
 def temporal_holds(
     request: Graph, left: Node, operator: Node, right: Node
 ) -> bool:
-    actual = request_temporal_value(request)
+    actual = _request_assertion(request, ODRL.dateTime)
     if actual is None:
         return False
     return cmp.compare_temporal(left, actual, operator, right)
-
-
-# Data o dateTime della request, in ordine di REQUEST_TEMPORAL_FEATURES.
-def request_temporal_value(request: Graph) -> Node | None:
-    return _value_for_features(request, vocab.REQUEST_TEMPORAL_FEATURES)
-
-
-# Cerca il RequestParameter provando i describesFeature mappati al leftOperand,
-# in ordine di priorità; restituisce il primo valore trovato.
-def _request_parameter_value(request: Graph, left_operand: Node) -> Node | None:
-    features = LEFT_OPERAND_TO_FEATURE.get(left_operand)
-    if not features:
-        return None
-    return _value_for_features(request, features)
-
-
-# Primo sotw:value tra i RequestParameter che descrivono una delle feature, in ordine.
-def _value_for_features(request: Graph, features: list[Node]) -> Node | None:
-    for feature in features:
-        for param in request.subjects(SOTW.describesFeature, feature):
-            value = request.value(param, SOTW.value)
-            if value is not None:
-                return value
-    return None

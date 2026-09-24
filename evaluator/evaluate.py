@@ -1,7 +1,11 @@
 from rdflib import Graph
 from rdflib.term import Node
 
+from evaluator import n3_engine
 from evaluator.vocab import namespaces
+
+# Regole N3 che traducono i requestParameter in lada:requestAssertion.
+REQUEST_MAP = "policies/samples/maps/ev_requests_map.n3"
 
 
 # Apre un file JSON-LD e lo carica come grafo RDF
@@ -11,6 +15,13 @@ def open_rdflib(file: str) -> Graph:
     # Associa i prefissi noti per stampare URI in forma compatta
     for prefix, ns in namespaces.items():
         graph.bind(prefix, ns)
+    return graph
+
+
+# Apre una EvaluationRequest JSON-LD e vi applica le regole di ev_requests_map.n3.
+def open_evaluation_request(file: str) -> Graph:
+    graph = open_rdflib(file)
+    n3_engine.apply(graph, REQUEST_MAP)
     return graph
 
 

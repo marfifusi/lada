@@ -1,0 +1,31 @@
+@prefix sotw: <https://w3id.org/force/sotw#> .
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+@prefix lada: <https://w3id.org/lada#> .
+
+# Asserzione vera: odrl:dateTime è uguale al CurrentXSDDateTime del RequestParameter.
+# odrl:eq è il comparatore di questa proposizione, non l'operatore della policy.
+# Un nodo per conclusione: due asserzioni non condividono lo stesso soggetto.
+{
+  ?param a sotw:RequestParameter .
+  ?param sotw:describesFeature sotw:CurrentXSDDateTime .
+  ?param sotw:value ?value .
+}
+=>
+{
+  _:requestAssertion odrl:leftOperand odrl:dateTime .
+  _:requestAssertion odrl:operator odrl:eq .
+  _:requestAssertion odrl:rightOperand ?value .
+} .
+
+# Asserzione vera: odrl:resolution è uguale al Resolution del RequestParameter.
+{
+  ?param a sotw:RequestParameter .
+  ?param sotw:describesFeature sotw:Resolution .
+  ?param sotw:value ?value .
+}
+=>
+{
+  _:requestAssertion odrl:leftOperand odrl:resolution .
+  _:requestAssertion odrl:operator odrl:eq .
+  _:requestAssertion odrl:rightOperand ?value .
+} .

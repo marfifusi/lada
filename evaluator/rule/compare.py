@@ -189,6 +189,14 @@ def _local_name(term: Node) -> str:
     return text[cut + 1 :]
 
 
+# True se il valore RDF è un intero (xsd:integer e i tipi derivati, non un booleano).
+def is_integer(value: Node) -> bool:
+    if not hasattr(value, "toPython"):
+        return False
+    py = value.toPython()
+    return isinstance(py, int) and not isinstance(py, bool)
+
+
 # Confronta due numeri RDF con l'operatore ODRL (eq, neq, lt, gt, lteq, gteq).
 def compare_numbers(left: Node, operator: Node, right: Node) -> bool:
     left_n = _to_decimal(left)

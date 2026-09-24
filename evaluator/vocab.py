@@ -13,6 +13,7 @@ prefixes = {
     "purl": "http://purl.org/NET/rdflicense/",
     "sotw": "https://w3id.org/force/sotw#",
     "pay": "https://www.epimorphics.com/guide-to-the-payments-ontology/",
+    "lada": "https://w3id.org/lada#",
     "ex": "http://example.com/ns#",
     "ex_policy": "http://example.com/policy/",
     "ex_rule": "http://example.com/rule/",
@@ -23,24 +24,6 @@ prefixes = {
 
 # Prefissi → Namespace rdflib, derivati dagli URI in prefixes.
 namespaces = {prefix: Namespace(uri) for prefix, uri in prefixes.items()}
-
-# Feature temporali ammesse in una EvaluationRequest: solo data e dateTime.
-# dayOfWeek non è un parametro della request: si ricava da questi valori.
-REQUEST_TEMPORAL_FEATURES: list[Node] = [
-    namespaces["sotw"].TemporalData,
-    namespaces["sotw"].CurrentXSDDateTime,
-    namespaces["sotw"].CurrentXSDDate,
-]
-
-# Per ogni leftOperand di un constraint, elenca i describesFeature da
-# cercare nei requestParameter (in ordine di priorità: il primo disponibile vince).
-# I leftOperand dayOfWeek non stanno qui: usano REQUEST_TEMPORAL_FEATURES.
-LEFT_OPERAND_TO_FEATURE: dict[Node, list[Node]] = {
-    namespaces["odrl"].dateTime: REQUEST_TEMPORAL_FEATURES,
-    namespaces["odrl"].resolution: [
-        namespaces["sotw"].Resolution,
-    ],
-}
 
 # Per ogni leftOperand di una refinement di un duty, indica la proprietà
 # dello SOTW da confrontare con il rightOperand.
