@@ -9,8 +9,10 @@ from evaluator.vocab import (
     namespaces,
 )
 
-# Namespace ODRL, SOTW e pagamenti.
+# Namespace ODRL, RDF, LADA e pagamenti.
 ODRL = namespaces["odrl"]
+RDF = namespaces["rdf"]
+LADA = namespaces["lada"]
 PAY = namespaces["pay"]
 
 
@@ -190,9 +192,12 @@ def _payment_property_value(
     return None
 
 
-# rightOperand dell'asserzione vera (operatore eq) con quel leftOperand; None se manca.
+# rightOperand della lada:RequestAssertion (operatore eq) con quel leftOperand.
+# Un nodo con gli stessi operandi ma senza quel tipo viene ignorato; None se manca.
 def _request_assertion(request: Graph, left: Node) -> Node | None:
     for assertion in request.subjects(ODRL.leftOperand, left):
+        if (assertion, RDF.type, LADA.RequestAssertion) not in request:
+            continue
         if request.value(assertion, ODRL.operator) != ODRL.eq:
             continue
         value = request.value(assertion, ODRL.rightOperand)

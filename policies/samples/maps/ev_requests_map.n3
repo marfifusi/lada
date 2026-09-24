@@ -12,6 +12,7 @@
 }
 =>
 {
+  _:requestAssertion a lada:RequestAssertion .
   _:requestAssertion odrl:leftOperand odrl:dateTime .
   _:requestAssertion odrl:operator odrl:eq .
   _:requestAssertion odrl:rightOperand ?value .
@@ -25,6 +26,7 @@
 }
 =>
 {
+  _:requestAssertion a lada:RequestAssertion .
   _:requestAssertion odrl:leftOperand odrl:resolution .
   _:requestAssertion odrl:operator odrl:eq .
   _:requestAssertion odrl:rightOperand ?value .
