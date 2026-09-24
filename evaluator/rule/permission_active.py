@@ -53,8 +53,8 @@ def is_constraint_satisfied(
     request: Graph,
 ) -> bool:
     """Il constraint è satisfied se il leftOperand ha un valore nella request
-    e il confronto vale. dateTime legge la requestAssertion; dayOfWeek
-    ricava il giorno da data e dateTime. Due interi si confrontano come numeri.
+    e il confronto vale. Il tipo dei due rightOperand sceglie il confronto:
+    date, dateTime o giorno contro date o dateTime, due interi, o due stringhe.
     Senza valore → False.
     """
     left = policy.value(constraint, ODRL.leftOperand)
@@ -63,16 +63,10 @@ def is_constraint_satisfied(
     if left is None or operator is None or right is None:
         return False
 
-    if cmp.is_temporal_left_operand(left):
-        return temporal_holds(request, left, operator, right)
-
-    actual = _request_assertion(request, left)
+    actual = _request_value_for_constraint(request, left)
     if actual is None:
         return False
-    if cmp.is_integer(actual) and cmp.is_integer(right):
-        return cmp.compare_numbers(actual, operator, right)
-
-    raise NotImplementedError(f"Constraint leftOperand not supported yet: {left}")
+    return cmp.compare_by_types(actual, operator, right)
 
 
 # Verifica se un Duty è fulfilled nello SOTW, oppure inactive perché
@@ -190,6 +184,44 @@ def _payment_property_value(
     if prop == PAY.netAmount:
         return payment["amount"]
     return None
+
+
+# Valore della request con lo stesso leftOperand. Un dayOfWeek senza asserzione
+# propria usa l'unica data o dateTime della request.
+def _request_value_for_constraint(request: Graph, left: Node) -> Node | None:
+    actual = _request_assertion(request, left)
+    if actual is not None:
+        return actual
+    if cmp.is_weekday_left_operand(left):
+        return _date_or_datetime_from_request(request)
+    return None
+
+
+# Data o dateTime unica fra le requestAssertion con operatore eq.
+# None se non c'è; errore se i valori sono più di uno.
+def _date_or_datetime_from_request(request: Graph) -> Node | None:
+    found: list[Node] = []
+    seen: set[str] = set()
+    for assertion in request.subjects(RDF.type, LADA.RequestAssertion):
+        if request.value(assertion, ODRL.operator) != ODRL.eq:
+            continue
+        value = request.value(assertion, ODRL.rightOperand)
+        if value is None:
+            continue
+        if not (cmp.is_date_value(value) or cmp.is_datetime_value(value)):
+            continue
+        key = str(value)
+        if key in seen:
+            continue
+        seen.add(key)
+        found.append(value)
+    if not found:
+        return None
+    if len(found) > 1:
+        raise NotImplementedError(
+            "Weekday constraint: more than one date or dateTime value in the request."
+        )
+    return found[0]
 
 
 # rightOperand della lada:RequestAssertion (operatore eq) con quel leftOperand.
