@@ -2,9 +2,8 @@
 @prefix odrl: <http://www.w3.org/ns/odrl/2/> .
 @prefix lada: <https://w3id.org/lada#> .
 
-# Asserzione vera: odrl:dateTime è uguale al CurrentXSDDateTime del RequestParameter.
-# odrl:eq è il comparatore di questa proposizione, non l'operatore della policy.
-# Un nodo per conclusione: due asserzioni non condividono lo stesso soggetto.
+# Un request parameter di tipo sotw:CurrentXSDDateTime esprime
+# un odrl:datetime per le policy
 {
   ?param a sotw:RequestParameter .
   ?param sotw:describesFeature sotw:CurrentXSDDateTime .
@@ -13,12 +12,14 @@
 =>
 {
   _:requestAssertion a lada:RequestAssertion .
+  _:requestAssertion lada:fromParameter ?param .
   _:requestAssertion odrl:leftOperand odrl:dateTime .
   _:requestAssertion odrl:operator odrl:eq .
   _:requestAssertion odrl:rightOperand ?value .
 } .
 
-# Asserzione vera: odrl:resolution è uguale al Resolution del RequestParameter.
+# Un request parameter di tipo sotw:Resolution esprime
+# un odrl:resolution per le policy
 {
   ?param a sotw:RequestParameter .
   ?param sotw:describesFeature sotw:Resolution .
@@ -27,6 +28,7 @@
 =>
 {
   _:requestAssertion a lada:RequestAssertion .
+  _:requestAssertion lada:fromParameter ?param .
   _:requestAssertion odrl:leftOperand odrl:resolution .
   _:requestAssertion odrl:operator odrl:eq .
   _:requestAssertion odrl:rightOperand ?value .
