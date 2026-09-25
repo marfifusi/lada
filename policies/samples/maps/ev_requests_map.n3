@@ -6,6 +6,7 @@
 @prefix lada: <https://w3id.org/lada#> .
 @prefix ex: <http://example.com/ns#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix log: <http://www.w3.org/2000/10/swap/log#> .
 ###############################################################################
 
 
@@ -65,6 +66,31 @@
   _:requestAssertion a lada:RequestAssertion .
   _:requestAssertion lada:fromParameter ?param .
   _:requestAssertion odrl:leftOperand odrl:resolution .
+  _:requestAssertion odrl:operator odrl:eq .
+  _:requestAssertion odrl:rightOperand ?value .
+} .
+###############################################################################
+
+
+###############################################################################
+# Se nessuna altra regola ha già creato una RequestAssertion da un
+# RequestParameter, la feature del parametro è il leftOperand. Così la
+# policy può confrontare il proprio leftOperand con la feature.
+###############################################################################
+{
+  ?param a sotw:RequestParameter .
+  ?param sotw:describesFeature ?feature .
+  ?param sotw:value ?value .
+  _:scope log:notIncludes {
+    ?assertion a lada:RequestAssertion .
+    ?assertion lada:fromParameter ?param .
+  } .
+}
+=>
+{
+  _:requestAssertion a lada:RequestAssertion .
+  _:requestAssertion lada:fromParameter ?param .
+  _:requestAssertion odrl:leftOperand ?feature .
   _:requestAssertion odrl:operator odrl:eq .
   _:requestAssertion odrl:rightOperand ?value .
 } .
