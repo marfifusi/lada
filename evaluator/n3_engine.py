@@ -13,7 +13,7 @@ LADA = namespaces["lada"]
 SOTW = namespaces["sotw"]
 
 # Segnaposto scritto dalla regola N3 al posto del nome del giorno.
-_WEEKDAY_PLACEHOLDER = Literal("dowPlaceholder", datatype=XSD.string)
+_WEEKDAY_PLACEHOLDER = Literal("dayOfWeek", datatype=XSD.string)
 
 # Nomi inglesi fissi (Monday = 0 … Sunday = 6), come date.weekday().
 _WEEKDAY_NAMES = (
@@ -42,7 +42,7 @@ def apply(graph: Graph, rules_path: str) -> None:
     _fill_weekday_placeholders(graph)
 
 
-# Sostituisce dowPlaceholder con il giorno del valore del parametro collegato.
+# Sostituisce dayOfWeek con il giorno del valore del parametro collegato.
 def _fill_weekday_placeholders(graph: Graph) -> None:
     assertions = list(graph.subjects(ODRL.rightOperand, _WEEKDAY_PLACEHOLDER))
     for assertion in assertions:

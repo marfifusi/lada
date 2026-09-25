@@ -32,9 +32,9 @@
 
 ###############################################################################
 # Un request parameter di tipo sotw:CurrentXSDDateTime esprime
-# un ex:dayOfWeek per le policy. Il segnaposto verrà sostituito dal nome
-# del giorno con una modifica applicata hard-coded, pyling-n3 non supporta
-# questo calcolo.
+# un ex:dayOfWeek per le policy. Il segnaposto "dayOfWeek"^^xsd:string
+# verrà sostituito dal nome del giorno giusto con una modifica applicata
+# hard-coded, pyling-n3 non supporta questo calcolo.
 ###############################################################################
 {
   ?param a sotw:RequestParameter .
@@ -47,7 +47,7 @@
   _:requestAssertion lada:fromParameter ?param .
   _:requestAssertion odrl:leftOperand ex:dayOfWeek .
   _:requestAssertion odrl:operator odrl:eq .
-  _:requestAssertion odrl:rightOperand "dowPlaceholder"^^xsd:string .
+  _:requestAssertion odrl:rightOperand "dayOfWeek"^^xsd:string .
 } .
 ###############################################################################
 
