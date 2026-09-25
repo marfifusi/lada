@@ -3,7 +3,7 @@ from datetime import date, datetime, time
 from decimal import Decimal
 
 from rdflib.namespace import XSD
-from rdflib.term import Node
+from rdflib.term import Node, URIRef
 
 from evaluator.vocab import namespaces
 
@@ -157,8 +157,8 @@ def _windows_overlap(
     return left[0] <= right[1] and right[0] <= left[1]
 
 
-# Confronta i due rightOperand in base al tipo: temporale, due interi o due
-# xsd:string (solo eq e neq). Ogni altra coppia non è supportata.
+# Confronta i due rightOperand in base al tipo: temporale, due interi, due
+# xsd:string o due URI (solo eq e neq). Ogni altra coppia non è supportata.
 def compare_by_types(actual: Node, operator: Node, right: Node) -> bool:
     if is_temporal_value_pair(actual, right):
         return _compare_temporal_values(actual, operator, right)
@@ -166,21 +166,18 @@ def compare_by_types(actual: Node, operator: Node, right: Node) -> bool:
         return compare_numbers(actual, operator, right)
     if is_string_value(actual) and is_string_value(right):
         return compare_strings(actual, operator, right)
+    if is_uri(actual) and is_uri(right):
+        return compare_uris(actual, operator, right)
     raise NotImplementedError(
         "Constraint value types not supported yet: "
         f"{value_kind(actual)} vs {value_kind(right)}"
     )
 
 
-# Confronto temporale sui valori, senza guardare l'URI del leftOperand.
-# Due date o dateTime usano le finestre; se un lato è un giorno, si ricava dall'altro.
+# Confronto temporale sui valori: due date o dateTime, come finestre.
 def _compare_temporal_values(actual: Node, operator: Node, right: Node) -> bool:
     actual_kind = value_kind(actual)
     right_kind = value_kind(right)
-    if actual_kind == "dayofweek" and right_kind in ("date", "datetime"):
-        return compare_strings(actual, operator, weekday_from_datetime(right))
-    if right_kind == "dayofweek" and actual_kind in ("date", "datetime"):
-        return compare_strings(weekday_from_datetime(actual), operator, right)
     if actual_kind in ("date", "datetime") and right_kind in ("date", "datetime"):
         return compare_datetimes(actual, operator, right)
     raise NotImplementedError(
@@ -189,13 +186,10 @@ def _compare_temporal_values(actual: Node, operator: Node, right: Node) -> bool:
     )
 
 
-# Confronto temporale su un valore date o dateTime.
-# odrl:dateTime confronta le finestre; un leftOperand dayOfWeek ricava il weekday e confronta stringhe.
+# Confronto fra finestre per un leftOperand odrl:dateTime.
 def compare_temporal(
     left_operand: Node, actual: Node, operator: Node, right: Node
 ) -> bool:
-    if is_weekday_left_operand(left_operand):
-        return compare_strings(weekday_from_datetime(actual), operator, right)
     if is_datetime_left_operand(left_operand):
         return compare_datetimes(actual, operator, right)
     raise NotImplementedError(
@@ -247,6 +241,11 @@ def is_string_value(value: Node) -> bool:
     return getattr(value, "datatype", None) == XSD.string
 
 
+# True se il valore RDF è un URI, non un literal né un blank node.
+def is_uri(value: Node) -> bool:
+    return isinstance(value, URIRef)
+
+
 # True se il valore è un giorno della settimana in inglese (Monday…Sunday).
 def is_weekday_value(value: Node) -> bool:
     if is_integer(value) or is_datetime_value(value) or is_date_value(value):
@@ -256,7 +255,7 @@ def is_weekday_value(value: Node) -> bool:
     return _to_str(value).casefold() in _WEEKDAY_NAMES
 
 
-# Classe del valore: integer, date, datetime, dayofweek, string oppure other.
+# Classe del valore: integer, date, datetime, dayofweek, string, uri oppure other.
 def value_kind(value: Node) -> str:
     if is_integer(value):
         return "integer"
@@ -268,18 +267,15 @@ def value_kind(value: Node) -> str:
         return "dayofweek"
     if is_string_value(value):
         return "string"
+    if is_uri(value):
+        return "uri"
     return "other"
 
 
-# True se un lato è date, dateTime o giorno e l'altro è date o dateTime.
+# True se entrambi i valori sono date o dateTime.
 def is_temporal_value_pair(left: Node, right: Node) -> bool:
-    left_kind = value_kind(left)
-    right_kind = value_kind(right)
     clock = {"date", "datetime"}
-    either = {"date", "datetime", "dayofweek"}
-    return (left_kind in either and right_kind in clock) or (
-        right_kind in either and left_kind in clock
-    )
+    return value_kind(left) in clock and value_kind(right) in clock
 
 
 # Valore Python di un nodo RDF, o il nodo stesso se non è un literal.
@@ -308,16 +304,13 @@ def compare_numbers(left: Node, operator: Node, right: Node) -> bool:
     raise NotImplementedError(f"Numeric operator not supported yet: {operator}")
 
 
-# Giorno della settimana in inglese (Monday…Sunday) da un RDF xsd:date o xsd:dateTime.
-def weekday_from_datetime(value: Node) -> str:
-    start, end = _to_time_window(value)
-    # Una finestra su più giorni non ha un unico weekday.
-    if start.date() != end.date():
-        raise UncertainTimeWindowError(
-            "weekday: the time window spans more than one day; "
-            "without an exact instant or date the weekday is uncertain."
-        )
-    return _WEEKDAYS_EN[start.weekday()]
+# Confronta due URI per identità dell'IRI: solo eq e neq, maiuscole distinte.
+def compare_uris(left: Node, operator: Node, right: Node) -> bool:
+    if operator == ODRL.eq:
+        return left == right
+    if operator == ODRL.neq:
+        return left != right
+    raise NotImplementedError(f"URI operator not supported yet: {operator}")
 
 
 # Confronta due stringhe con l'operatore ODRL, ignorando maiuscole/minuscole.

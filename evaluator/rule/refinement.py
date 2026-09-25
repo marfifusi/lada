@@ -10,7 +10,7 @@ ODRL = namespaces["odrl"]
 
 
 # Verifica le refinement di azione, target e assignee della Permission sulla request.
-# I leftOperand temporali leggono la requestAssertion di odrl:dateTime.
+# odrl:dateTime legge quell'asserzione; un giorno della settimana legge l'URI esatto.
 # Gli altri leftOperand non sono ancora implementati.
 def satisfied(policy: Graph, permission: Node, request: Graph) -> bool:
     for node in _refined_nodes(policy, permission):
@@ -26,7 +26,8 @@ def _refined_nodes(policy: Graph, permission: Node):
         yield from policy.objects(permission, predicate)
 
 
-# True se la refinement è soddisfatta. I leftOperand temporali leggono odrl:dateTime.
+# True se la refinement è soddisfatta.
+# odrl:dateTime legge quell'asserzione; un giorno della settimana legge l'URI esatto.
 def _holds(policy: Graph, refinement: Node, request: Graph) -> bool:
     left = policy.value(refinement, ODRL.leftOperand)
     operator = policy.value(refinement, ODRL.operator)

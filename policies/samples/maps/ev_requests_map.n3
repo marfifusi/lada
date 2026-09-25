@@ -1,9 +1,18 @@
+###############################################################################
+# Namespaces
+###############################################################################
 @prefix sotw: <https://w3id.org/force/sotw#> .
 @prefix odrl: <http://www.w3.org/ns/odrl/2/> .
 @prefix lada: <https://w3id.org/lada#> .
+@prefix ex: <http://example.com/ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+###############################################################################
 
+
+###############################################################################
 # Un request parameter di tipo sotw:CurrentXSDDateTime esprime
 # un odrl:datetime per le policy
+###############################################################################
 {
   ?param a sotw:RequestParameter .
   ?param sotw:describesFeature sotw:CurrentXSDDateTime .
@@ -17,9 +26,35 @@
   _:requestAssertion odrl:operator odrl:eq .
   _:requestAssertion odrl:rightOperand ?value .
 } .
+###############################################################################
 
+
+###############################################################################
+# Un request parameter di tipo sotw:CurrentXSDDateTime esprime
+# un ex:dayOfWeek per le policy. Il segnaposto verrà sostituito dal nome
+# del giorno con una modifica applicata hard-coded, pyling-n3 non supporta
+# questo calcolo.
+###############################################################################
+{
+  ?param a sotw:RequestParameter .
+  ?param sotw:describesFeature sotw:CurrentXSDDateTime .
+  ?param sotw:value ?value .
+}
+=>
+{
+  _:requestAssertion a lada:RequestAssertion .
+  _:requestAssertion lada:fromParameter ?param .
+  _:requestAssertion odrl:leftOperand ex:dayOfWeek .
+  _:requestAssertion odrl:operator odrl:eq .
+  _:requestAssertion odrl:rightOperand "dowPlaceholder"^^xsd:string .
+} .
+###############################################################################
+
+
+###############################################################################
 # Un request parameter di tipo sotw:Resolution esprime
 # un odrl:resolution per le policy
+###############################################################################
 {
   ?param a sotw:RequestParameter .
   ?param sotw:describesFeature sotw:Resolution .
@@ -33,3 +68,4 @@
   _:requestAssertion odrl:operator odrl:eq .
   _:requestAssertion odrl:rightOperand ?value .
 } .
+###############################################################################

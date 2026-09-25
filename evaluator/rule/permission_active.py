@@ -186,42 +186,9 @@ def _payment_property_value(
     return None
 
 
-# Valore della request con lo stesso leftOperand. Un dayOfWeek senza asserzione
-# propria usa l'unica data o dateTime della request.
+# Valore della request con lo stesso leftOperand. Senza asserzione, None.
 def _request_value_for_constraint(request: Graph, left: Node) -> Node | None:
-    actual = _request_assertion(request, left)
-    if actual is not None:
-        return actual
-    if cmp.is_weekday_left_operand(left):
-        return _date_or_datetime_from_request(request)
-    return None
-
-
-# Data o dateTime unica fra le requestAssertion con operatore eq.
-# None se non c'è; errore se i valori sono più di uno.
-def _date_or_datetime_from_request(request: Graph) -> Node | None:
-    found: list[Node] = []
-    seen: set[str] = set()
-    for assertion in request.subjects(RDF.type, LADA.RequestAssertion):
-        if request.value(assertion, ODRL.operator) != ODRL.eq:
-            continue
-        value = request.value(assertion, ODRL.rightOperand)
-        if value is None:
-            continue
-        if not (cmp.is_date_value(value) or cmp.is_datetime_value(value)):
-            continue
-        key = str(value)
-        if key in seen:
-            continue
-        seen.add(key)
-        found.append(value)
-    if not found:
-        return None
-    if len(found) > 1:
-        raise NotImplementedError(
-            "Weekday constraint: more than one date or dateTime value in the request."
-        )
-    return found[0]
+    return _request_assertion(request, left)
 
 
 # rightOperand della lada:RequestAssertion (operatore eq) con quel leftOperand.
@@ -238,11 +205,17 @@ def _request_assertion(request: Graph, left: Node) -> Node | None:
     return None
 
 
-# True se data o dateTime della requestAssertion odrl:dateTime soddisfano il leftOperand.
-# dayOfWeek non ha un'asserzione propria: il giorno si ricava da quel valore.
+# True se il leftOperand temporale è soddisfatto.
+# Un giorno della settimana legge l'asserzione con lo stesso URI;
+# odrl:dateTime legge la requestAssertion di quel leftOperand.
 def temporal_holds(
     request: Graph, left: Node, operator: Node, right: Node
 ) -> bool:
+    if cmp.is_weekday_left_operand(left):
+        actual = _request_assertion(request, left)
+        if actual is None:
+            return False
+        return cmp.compare_strings(actual, operator, right)
     actual = _request_assertion(request, ODRL.dateTime)
     if actual is None:
         return False
