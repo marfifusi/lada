@@ -1,0 +1,33 @@
+###############################################################################
+# Namespaces
+###############################################################################
+@prefix sotw: <https://w3id.org/force/sotw#> .
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+@prefix lada: <https://w3id.org/lada#> .
+@prefix ex: <http://example.com/ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix log: <http://www.w3.org/2000/10/swap/log#> .
+@prefix pay: <https://www.epimorphics.com/guide-to-the-payments-ontology/> .
+###############################################################################
+
+
+###############################################################################
+# Un pagamento nello SOTW esprime un odrl:payAmount per le policy
+###############################################################################
+{
+  ?param a pay:Payment .
+  ?param pay:netAmount ?value .
+  ?param pay:currency ?currency .
+  ?param sotw:conditionId ?cid .
+}
+=>
+{
+  _:sotwAssertion a lada:SotwAssertion .
+  _:sotwAssertion lada:fromContext ?param .
+  _:sotwAssertion odrl:leftOperand odrl:payAmount .
+  _:sotwAssertion odrl:operator odrl:eq .
+  _:sotwAssertion odrl:rightOperand ?value .
+  _:sotwAssertion odrl:unit ?currency .
+  _:sotwAssertion lada:dutyReference ?cid .
+} .
+###############################################################################

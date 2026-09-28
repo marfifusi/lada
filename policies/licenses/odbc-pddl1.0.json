@@ -1,0 +1,41 @@
+{
+  "@context": [
+    "http://www.w3.org/ns/odrl.jsonld",
+    {
+      "cc": "http://creativecommons.org/ns#",
+      "dct": "http://purl.org/dc/terms/",
+      "foaf": "http://xmlns.com/foaf/0.1/",
+      "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+      "spdx": "http://spdx.org/rdf/terms#"
+    }
+  ],
+  "uid": "http://purl.org/NET/rdflicense/odbc-pddl1.0",
+  "@type": "Set",
+  "spdx:licenseId": "PDDL-1.0",
+  "rdfs:label": "Open Data Commons Public Domain Dedication and License (PDDL 1.0)",
+  "rdfs:seeAlso": {
+    "@id": "http://www.opendatacommons.org/wp-content/uploads/2010/01/odc_pddl_1.0_public_text.txt"
+  },
+  "dct:alternative": "PDDL",
+  "dct:hasVersion": "1.0",
+  "dct:language": {
+    "@id": "http://www.lexvo.org/page/iso639-3/eng"
+  },
+  "dct:publisher": "Open Data Commons",
+  "dct:source": {
+    "@id": "https://opendatacommons.org/licenses/pddl/"
+  },
+  "dct:title": {
+    "@value": "Open Data Commons - Public Domain Dedication and License 1.0 - PDDL 1.0",
+    "@language": "en"
+  },
+  "permission": [
+    {
+      "action": [
+        "cc:Reproduction",
+        "cc:Distribution",
+        "cc:DerivativeWorks"
+      ]
+    }
+  ]
+}
