@@ -28,7 +28,7 @@ def is_active(policy: Graph, duty: Node, request: Graph) -> bool:
 
 
 # True se la duty è fulfilled: active, una SotwAction con lo stesso id,
-# data evento antecedente al dateTime della request, e ogni refinement
+# data dell'azione antecedente al dateTime della request, e ogni refinement
 # soddisfatta da un RefinementSatisfier di quell'azione.
 # Target e assignee della duty non entrano in questo controllo.
 def is_fulfilled(policy: Graph, duty: Node, request: Graph) -> bool:
@@ -42,10 +42,10 @@ def is_fulfilled(policy: Graph, duty: Node, request: Graph) -> bool:
         return False
     refinements = list(policy.objects(action, ODRL.refinement))
     for sotw_action in actions_for_duty(duty):
-        event_time = sotw_action["event_datetime"]
-        if event_time is None:
+        action_time = sotw_action["action_datetime"]
+        if action_time is None:
             continue
-        if not cmp.compare_datetimes(event_time, ODRL.lt, request_time):
+        if not cmp.compare_datetimes(action_time, ODRL.lt, request_time):
             continue
         if all(
             _refinement_satisfied(policy, refinement, request, sotw_action)
@@ -115,7 +115,7 @@ def _extra_triples_match(policy: Graph, refinement: Node, satisfier: dict) -> bo
 
 
 # Azioni SOTW (lada:SotwAction) il cui lada:dutyReference è la duty.
-# Ogni azione porta la data evento e i RefinementSatisfier.
+# Ogni azione porta la data dell'azione e i RefinementSatisfier.
 def actions_for_duty(duty: Node) -> list[dict]:
     graph = sotw.graph()
     if graph is None:
@@ -127,10 +127,10 @@ def actions_for_duty(duty: Node) -> list[dict]:
     ]
 
 
-# Data evento e satisfier di una SotwAction.
+# Data dell'azione e satisfier di una SotwAction.
 def _action_record(action: Node) -> dict:
     return {
-        "event_datetime": _event_datetime(action),
+        "action_datetime": _action_datetime(action),
         "satisfiers": _satisfiers(action),
     }
 
@@ -147,15 +147,12 @@ def _satisfiers(action: Node) -> list[dict]:
     ]
 
 
-# Letterale lada:dateTime del nodo lada:SotwEventDateTime collegato all'azione.
-def _event_datetime(action: Node) -> Node | None:
+# Letterale lada:actionDateTime dell'azione.
+def _action_datetime(action: Node) -> Node | None:
     graph = sotw.graph()
     if graph is None:
         return None
-    event = graph.value(action, LADA.eventDateTime)
-    if event is None or (event, RDF.type, LADA.SotwEventDateTime) not in graph:
-        return None
-    return graph.value(event, LADA.dateTime)
+    return graph.value(action, LADA.actionDateTime)
 
 
 # Operandi del RefinementSatisfier e le altre sue triple, escluso rdf:type.

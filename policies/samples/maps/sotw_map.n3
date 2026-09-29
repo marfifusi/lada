@@ -30,9 +30,7 @@
   _:sotwAction lada:hasRefinementSatisfier _:refinementSatisfier .
 
   # datetime dell'azione
-  _:sotwEventDateTime a lada:SotwEventDateTime .
-  _:sotwAction lada:eventDateTime _:sotwEventDateTime .
-  _:sotwEventDateTime lada:dateTime ?dateTime .
+  _:sotwAction lada:actionDateTime ?dateTime .
 
   # Refinement dell'azione
   _:refinementSatisfier a lada:RefinementSatisfier .
