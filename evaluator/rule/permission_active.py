@@ -1,10 +1,8 @@
 from rdflib import Graph
 from rdflib.term import Node
 
-from evaluator import sotw
-from evaluator.rule import action_class
 from evaluator.rule import compare as cmp
-from evaluator.rule import refinement as refn
+from evaluator.rule import duty as duty_rule
 from evaluator.vocab import namespaces
 
 # Namespace ODRL, RDF e LADA.
@@ -15,7 +13,7 @@ LADA = namespaces["lada"]
 
 # Valuta se un Permission è active sull'azione della request:
 # tutti i Constraint sono satisfied e tutti i Duty sono fulfilled oppure inactive.
-# Lo State of the World non arriva come Graph: si interroga via SPARQL da sotw.py.
+# Lo State of the World non arriva come Graph: si interroga da sotw.py.
 def is_permission_active(
     policy: Graph,
     permission: Node,
@@ -44,7 +42,7 @@ def is_permission_active(
 
 # Verifica se un Constraint o una Refinement è satisfied.
 # Senza valore esplicito lo legge dalla request (stesso leftOperand).
-# Con use_request=False usa actual, per esempio il rightOperand di una SotwAssertion.
+# Con use_request=False usa actual, per esempio il rightOperand di un RefinementSatisfier.
 def is_constraint_satisfied(
     policy: Graph,
     constraint: Node,
@@ -80,69 +78,20 @@ def is_duty_fulfilled_or_inactive(
     """Un Duty è inactive se ha constraint non satisfied; altrimenti
     deve essere fulfilled da un'azione compiuta nello SOTW.
     """
-    constraints = list(policy.objects(duty, ODRL.constraint))
     # Duty inactive (constraint non satisfied) ⇒ la permission può restare active
-    if constraints and not all(
-        is_constraint_satisfied(policy, constraint, request)
-        for constraint in constraints
-    ):
+    if not duty_rule.is_active(policy, duty, request):
         return True
-    return _is_duty_fulfilled(policy, duty, request)
-
-
-# Un Duty è fulfilled se nello SOTW esiste un'azione compiuta che
-# corrisponde al tipo di azione e alle refinement della duty.
-def _is_duty_fulfilled(policy: Graph, duty: Node, request: Graph) -> bool:
-    action = policy.value(duty, ODRL.action)
-    if action is None:
-        return False
-    # C1 usa un nodo azione con rdf:value, non l'URI odrl:compensate diretto
-    action_type = action_class.action_type(policy, action)
-    if action_type == ODRL.compensate:
-        return _is_compensate_fulfilled(policy, duty, action, request)
-    raise NotImplementedError(f"Duty action not supported yet: {action_type}")
-
-
-# Il compensate è fulfilled se un Payment collegato alla duty ha come payee
-# il beneficiario e ogni refinement è soddisfatta da una SotwAssertion.
-def _is_compensate_fulfilled(
-    policy: Graph, duty: Node, action: Node, request: Graph
-) -> bool:
-    beneficiary = _compensate_beneficiary(policy, duty, action)
-    refinements = list(policy.objects(action, ODRL.refinement))
-    # SPARQL su sotw.py: solo i Payment con conditionId = URI della duty
-    for payment in sotw.payments_for_condition(duty):
-        # Il payer può essere un terzo; conta il beneficiario (payee)
-        if beneficiary is not None and payment["payee"] != beneficiary:
-            continue
-        # Ogni refinement deve essere soddisfatta da una SotwAssertion.
-        if all(
-            refn.satisfied_by_sotw(policy, refinement, request, duty, action)
-            for refinement in refinements
-        ):
-            return True
-    return False
-
-
-# Beneficiario del compensate: odrl:compensatedParty se c'è, altrimenti
-# l'assigner della permission che contiene la duty.
-def _compensate_beneficiary(
-    policy: Graph, duty: Node, action: Node
-) -> Node | None:
-    compensated = policy.value(action, ODRL.compensatedParty)
-    if compensated is not None:
-        return compensated
-    # C1 non dichiara compensatedParty: i soldi vanno all'assigner (sony)
-    for permission in policy.subjects(ODRL.duty, duty):
-        assigner = policy.value(permission, ODRL.assigner)
-        if assigner is not None:
-            return assigner
-    return None
+    return duty_rule.is_fulfilled(policy, duty, request)
 
 
 # Valore della request con lo stesso leftOperand. Senza asserzione, None.
 def _request_value_for_constraint(request: Graph, left: Node) -> Node | None:
     return _request_assertion(request, left)
+
+
+# rightOperand della RequestAssertion con leftOperand odrl:dateTime. None se manca.
+def request_datetime(request: Graph) -> Node | None:
+    return _request_assertion(request, ODRL.dateTime)
 
 
 # rightOperand della lada:RequestAssertion (operatore eq) con quel leftOperand.

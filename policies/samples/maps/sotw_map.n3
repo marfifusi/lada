@@ -18,16 +18,28 @@
   ?param a pay:Payment .
   ?param pay:netAmount ?value .
   ?param pay:currency ?currency .
+  ?param pay:paymentDate ?dateTime .
   ?param sotw:conditionId ?cid .
 }
 =>
 {
-  _:sotwAssertion a lada:SotwAssertion .
-  _:sotwAssertion lada:fromContext ?param .
-  _:sotwAssertion odrl:leftOperand odrl:payAmount .
-  _:sotwAssertion odrl:operator odrl:eq .
-  _:sotwAssertion odrl:rightOperand ?value .
-  _:sotwAssertion odrl:unit ?currency .
-  _:sotwAssertion lada:dutyReference ?cid .
+  # La action che viene confrontata con la duty nella policy
+  _:sotwAction a lada:SotwAction .
+  _:sotwAction lada:fromContext ?param .
+  _:sotwAction lada:dutyReference ?cid .
+  _:sotwAction lada:hasRefinementSatisfier _:refinementSatisfier .
+
+  # datetime dell'azione
+  _:sotwEventDateTime a lada:SotwEventDateTime .
+  _:sotwAction lada:eventDateTime _:sotwEventDateTime .
+  _:sotwEventDateTime lada:dateTime ?dateTime .
+
+  # Refinement dell'azione
+  _:refinementSatisfier a lada:RefinementSatisfier .
+  _:refinementSatisfier odrl:leftOperand odrl:payAmount .
+  _:refinementSatisfier odrl:operator odrl:eq .
+  _:refinementSatisfier odrl:rightOperand ?value .
+  _:refinementSatisfier odrl:unit ?currency .
+
 } .
 ###############################################################################
