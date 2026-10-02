@@ -27,17 +27,17 @@
   _:sotwAction a lada:SotwAction .
   _:sotwAction lada:fromContext ?param .
   _:sotwAction lada:dutyReference ?cid .
-  _:sotwAction lada:hasRefinementSatisfier _:refinementSatisfier .
+  _:sotwAction lada:hasConstraintSatisfier _:constraintSatisfier .
 
   # datetime dell'azione
   _:sotwAction lada:actionDateTime ?dateTime .
 
-  # Refinement dell'azione
-  _:refinementSatisfier a lada:RefinementSatisfier .
-  _:refinementSatisfier odrl:leftOperand odrl:payAmount .
-  _:refinementSatisfier odrl:operator odrl:eq .
-  _:refinementSatisfier odrl:rightOperand ?value .
-  _:refinementSatisfier odrl:unit ?currency .
+  # ConstraintSatisfier dell'azione (una refinement è una odrl:Constraint)
+  _:constraintSatisfier a lada:ConstraintSatisfier .
+  _:constraintSatisfier odrl:leftOperand odrl:payAmount .
+  _:constraintSatisfier odrl:operator odrl:eq .
+  _:constraintSatisfier odrl:rightOperand ?value .
+  _:constraintSatisfier odrl:unit ?currency .
 
 } .
 ###############################################################################

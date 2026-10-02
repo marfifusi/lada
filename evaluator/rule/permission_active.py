@@ -41,8 +41,8 @@ def is_permission_active(
 
 
 # Verifica se un Constraint o una Refinement è satisfied.
-# Senza valore esplicito lo legge dalla request (stesso leftOperand).
-# Con use_request=False usa actual, per esempio il rightOperand di un RefinementSatisfier.
+# Senza valore esplicito lo legge da un ConstraintSatisfier della request (stesso leftOperand).
+# Con use_request=False usa actual, per esempio il rightOperand di un ConstraintSatisfier dello SOTW.
 def is_constraint_satisfied(
     policy: Graph,
     constraint: Node,
@@ -52,7 +52,7 @@ def is_constraint_satisfied(
     use_request: bool = True,
 ) -> bool:
     """Il nodo è satisfied se operator e rightOperand confrontano un valore.
-    Di default il valore è la requestAssertion con lo stesso leftOperand.
+    Di default il valore è il ConstraintSatisfier della request con lo stesso leftOperand.
     Con use_request=False si usa actual; se manca, False.
     Il tipo dei due valori sceglie il confronto.
     """
@@ -62,7 +62,7 @@ def is_constraint_satisfied(
     if left is None or operator is None or right is None:
         return False
     if use_request:
-        actual = _request_value_for_constraint(request, left)
+        actual = _constraint_satisfier_value(request, left)
     if actual is None:
         return False
     return cmp.compare_by_types(actual, operator, right)
@@ -84,25 +84,20 @@ def is_duty_fulfilled_or_inactive(
     return duty_rule.is_fulfilled(policy, duty, request)
 
 
-# Valore della request con lo stesso leftOperand. Senza asserzione, None.
-def _request_value_for_constraint(request: Graph, left: Node) -> Node | None:
-    return _request_assertion(request, left)
-
-
-# rightOperand della RequestAssertion con leftOperand odrl:dateTime. None se manca.
+# rightOperand del ConstraintSatisfier con leftOperand odrl:dateTime. None se manca.
 def request_datetime(request: Graph) -> Node | None:
-    return _request_assertion(request, ODRL.dateTime)
+    return _constraint_satisfier_value(request, ODRL.dateTime)
 
 
-# rightOperand della lada:RequestAssertion (operatore eq) con quel leftOperand.
+# rightOperand del lada:ConstraintSatisfier (operatore eq) con quel leftOperand.
 # Un nodo con gli stessi operandi ma senza quel tipo viene ignorato; None se manca.
-def _request_assertion(request: Graph, left: Node) -> Node | None:
-    for assertion in request.subjects(ODRL.leftOperand, left):
-        if (assertion, RDF.type, LADA.RequestAssertion) not in request:
+def _constraint_satisfier_value(request: Graph, left: Node) -> Node | None:
+    for satisfier in request.subjects(ODRL.leftOperand, left):
+        if (satisfier, RDF.type, LADA.ConstraintSatisfier) not in request:
             continue
-        if request.value(assertion, ODRL.operator) != ODRL.eq:
+        if request.value(satisfier, ODRL.operator) != ODRL.eq:
             continue
-        value = request.value(assertion, ODRL.rightOperand)
+        value = request.value(satisfier, ODRL.rightOperand)
         if value is not None:
             return value
     return None

@@ -7,8 +7,9 @@ from rdflib.namespace import XSD
 import pyling
 from evaluator.vocab import namespaces
 
-# Namespace usati per collegare l'asserzione al parametro e al suo valore.
+# Namespace usati per collegare l'asserzione al parametro e al ConstraintSatisfier.
 ODRL = namespaces["odrl"]
+RDF = namespaces["rdf"]
 LADA = namespaces["lada"]
 SOTW = namespaces["sotw"]
 
@@ -42,15 +43,18 @@ def apply(graph: Graph, rules_path: str) -> None:
     _fill_weekday_placeholders(graph)
 
 
-# Sostituisce dayOfWeek con il giorno del valore del parametro collegato.
+# Sostituisce dayOfWeek sul ConstraintSatisfier con il giorno del parametro collegato.
 def _fill_weekday_placeholders(graph: Graph) -> None:
-    assertions = list(graph.subjects(ODRL.rightOperand, _WEEKDAY_PLACEHOLDER))
-    for assertion in assertions:
-        param = graph.value(assertion, LADA.fromParameter)
+    satisfiers = list(graph.subjects(ODRL.rightOperand, _WEEKDAY_PLACEHOLDER))
+    for satisfier in satisfiers:
+        if (satisfier, RDF.type, LADA.ConstraintSatisfier) not in graph:
+            continue
+        assertion = next(graph.subjects(LADA.hasConstraintSatisfier, satisfier), None)
+        param = graph.value(assertion, LADA.fromParameter) if assertion is not None else None
         value = graph.value(param, SOTW.value) if param is not None else None
         name = Literal(_weekday_name(value), datatype=XSD.string)
-        graph.remove((assertion, ODRL.rightOperand, _WEEKDAY_PLACEHOLDER))
-        graph.add((assertion, ODRL.rightOperand, name))
+        graph.remove((satisfier, ODRL.rightOperand, _WEEKDAY_PLACEHOLDER))
+        graph.add((satisfier, ODRL.rightOperand, name))
 
 
 # Nome inglese del giorno da un xsd:date o xsd:dateTime.

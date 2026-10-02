@@ -29,7 +29,7 @@ def is_active(policy: Graph, duty: Node, request: Graph) -> bool:
 
 # True se la duty è fulfilled: active, una SotwAction con lo stesso id,
 # data dell'azione antecedente al dateTime della request, e ogni refinement
-# soddisfatta da un RefinementSatisfier di quell'azione.
+# soddisfatta da un ConstraintSatisfier di quell'azione.
 # Target e assignee della duty non entrano in questo controllo.
 def is_fulfilled(policy: Graph, duty: Node, request: Graph) -> bool:
     if not is_active(policy, duty, request):
@@ -55,7 +55,7 @@ def is_fulfilled(policy: Graph, duty: Node, request: Graph) -> bool:
     return False
 
 
-# True se un RefinementSatisfier di questa SotwAction soddisfa la refinement.
+# True se un ConstraintSatisfier di questa SotwAction soddisfa la refinement.
 def _refinement_satisfied(
     policy: Graph,
     refinement: Node,
@@ -104,7 +104,7 @@ def _has_operand(policy: Graph, refinement: Node) -> bool:
     return any(policy.value(refinement, predicate) is not None for predicate in _OPERANDS)
 
 
-# Ogni predicato extra della refinement, con lo stesso valore, sta sul RefinementSatisfier.
+# Ogni predicato extra della refinement, con lo stesso valore, sta sul ConstraintSatisfier.
 def _extra_triples_match(policy: Graph, refinement: Node, satisfier: dict) -> bool:
     for predicate, obj in policy.predicate_objects(refinement):
         if predicate in _OPERANDS or predicate == RDF.type:
@@ -115,7 +115,7 @@ def _extra_triples_match(policy: Graph, refinement: Node, satisfier: dict) -> bo
 
 
 # Azioni SOTW (lada:SotwAction) il cui lada:dutyReference è la duty.
-# Ogni azione porta la data dell'azione e i RefinementSatisfier.
+# Ogni azione porta la data dell'azione e i ConstraintSatisfier.
 def actions_for_duty(duty: Node) -> list[dict]:
     graph = sotw.graph()
     if graph is None:
@@ -135,15 +135,15 @@ def _action_record(action: Node) -> dict:
     }
 
 
-# RefinementSatisfier collegati all'azione.
+# ConstraintSatisfier collegati all'azione.
 def _satisfiers(action: Node) -> list[dict]:
     graph = sotw.graph()
     if graph is None:
         return []
     return [
         _satisfier_record(satisfier)
-        for satisfier in graph.objects(action, LADA.hasRefinementSatisfier)
-        if (satisfier, RDF.type, LADA.RefinementSatisfier) in graph
+        for satisfier in graph.objects(action, LADA.hasConstraintSatisfier)
+        if (satisfier, RDF.type, LADA.ConstraintSatisfier) in graph
     ]
 
 
@@ -155,7 +155,7 @@ def _action_datetime(action: Node) -> Node | None:
     return graph.value(action, LADA.actionDateTime)
 
 
-# Operandi del RefinementSatisfier e le altre sue triple, escluso rdf:type.
+# Operandi del ConstraintSatisfier e le altre sue triple, escluso rdf:type.
 def _satisfier_record(satisfier: Node) -> dict:
     graph = sotw.graph()
     if graph is None:

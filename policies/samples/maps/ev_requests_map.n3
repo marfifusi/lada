@@ -23,9 +23,12 @@
 {
   _:requestAssertion a lada:RequestAssertion .
   _:requestAssertion lada:fromParameter ?param .
-  _:requestAssertion odrl:leftOperand odrl:dateTime .
-  _:requestAssertion odrl:operator odrl:eq .
-  _:requestAssertion odrl:rightOperand ?value .
+  _:requestAssertion lada:hasConstraintSatisfier _:constraintSatisfier .
+
+  _:constraintSatisfier a lada:ConstraintSatisfier .
+  _:constraintSatisfier odrl:leftOperand odrl:dateTime .
+  _:constraintSatisfier odrl:operator odrl:eq .
+  _:constraintSatisfier odrl:rightOperand ?value .
 } .
 ###############################################################################
 
@@ -45,9 +48,12 @@
 {
   _:requestAssertion a lada:RequestAssertion .
   _:requestAssertion lada:fromParameter ?param .
-  _:requestAssertion odrl:leftOperand ex:dayOfWeek .
-  _:requestAssertion odrl:operator odrl:eq .
-  _:requestAssertion odrl:rightOperand "dayOfWeek"^^xsd:string .
+  _:requestAssertion lada:hasConstraintSatisfier _:constraintSatisfier .
+
+  _:constraintSatisfier a lada:ConstraintSatisfier .
+  _:constraintSatisfier odrl:leftOperand ex:dayOfWeek .
+  _:constraintSatisfier odrl:operator odrl:eq .
+  _:constraintSatisfier odrl:rightOperand "dayOfWeek"^^xsd:string .
 } .
 ###############################################################################
 
@@ -65,17 +71,21 @@
 {
   _:requestAssertion a lada:RequestAssertion .
   _:requestAssertion lada:fromParameter ?param .
-  _:requestAssertion odrl:leftOperand odrl:resolution .
-  _:requestAssertion odrl:operator odrl:eq .
-  _:requestAssertion odrl:rightOperand ?value .
+  _:requestAssertion lada:hasConstraintSatisfier _:constraintSatisfier .
+
+  _:constraintSatisfier a lada:ConstraintSatisfier .
+  _:constraintSatisfier odrl:leftOperand odrl:resolution .
+  _:constraintSatisfier odrl:operator odrl:eq .
+  _:constraintSatisfier odrl:rightOperand ?value .
 } .
 ###############################################################################
 
 
 ###############################################################################
 # Se nessuna altra regola ha già creato una RequestAssertion da un
-# RequestParameter, la feature del parametro è il leftOperand. Così la
-# policy può confrontare il proprio leftOperand con la feature.
+# RequestParameter, la feature del parametro è il leftOperand del
+# ConstraintSatisfier. Così la policy può confrontare il proprio
+# leftOperand con la feature.
 ###############################################################################
 {
   ?param a sotw:RequestParameter .
@@ -90,8 +100,11 @@
 {
   _:requestAssertion a lada:RequestAssertion .
   _:requestAssertion lada:fromParameter ?param .
-  _:requestAssertion odrl:leftOperand ?feature .
-  _:requestAssertion odrl:operator odrl:eq .
-  _:requestAssertion odrl:rightOperand ?value .
+  _:requestAssertion lada:hasConstraintSatisfier _:constraintSatisfier .
+
+  _:constraintSatisfier a lada:ConstraintSatisfier .
+  _:constraintSatisfier odrl:leftOperand ?feature .
+  _:constraintSatisfier odrl:operator odrl:eq .
+  _:constraintSatisfier odrl:rightOperand ?value .
 } .
 ###############################################################################
