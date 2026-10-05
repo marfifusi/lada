@@ -7,7 +7,7 @@ from rdflib.namespace import XSD
 import pyling
 from evaluator.vocab import namespaces
 
-# Namespace usati per collegare l'asserzione al parametro e al ConstraintSatisfier.
+# Namespace usati per leggere il parametro dal ConstraintSatisfier.
 ODRL = namespaces["odrl"]
 RDF = namespaces["rdf"]
 LADA = namespaces["lada"]
@@ -49,8 +49,7 @@ def _fill_weekday_placeholders(graph: Graph) -> None:
     for satisfier in satisfiers:
         if (satisfier, RDF.type, LADA.ConstraintSatisfier) not in graph:
             continue
-        assertion = next(graph.subjects(LADA.hasConstraintSatisfier, satisfier), None)
-        param = graph.value(assertion, LADA.fromParameter) if assertion is not None else None
+        param = graph.value(satisfier, LADA.fromParameter)
         value = graph.value(param, SOTW.value) if param is not None else None
         name = Literal(_weekday_name(value), datatype=XSD.string)
         graph.remove((satisfier, ODRL.rightOperand, _WEEKDAY_PLACEHOLDER))

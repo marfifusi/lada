@@ -30,7 +30,7 @@
   _:sotwAction lada:hasConstraintSatisfier _:constraintSatisfier .
 
   # datetime dell'azione
-  _:sotwAction lada:actionDateTime ?dateTime .
+  _:sotwAction lada:atTime ?dateTime .
 
   # ConstraintSatisfier dell'azione (una refinement è una odrl:Constraint)
   _:constraintSatisfier a lada:ConstraintSatisfier .

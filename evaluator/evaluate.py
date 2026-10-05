@@ -4,7 +4,7 @@ from rdflib.term import Node
 from evaluator import n3_engine
 from evaluator.vocab import namespaces
 
-# Regole N3 che traducono i requestParameter in lada:requestAssertion.
+# Regole N3 che traducono i requestParameter in lada:ConstraintSatisfier.
 REQUEST_MAP = "policies/samples/maps/ev_requests_map.n3"
 
 

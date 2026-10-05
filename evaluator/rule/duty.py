@@ -147,12 +147,12 @@ def _satisfiers(action: Node) -> list[dict]:
     ]
 
 
-# Letterale lada:actionDateTime dell'azione.
+# Letterale lada:atTime dell'azione.
 def _action_datetime(action: Node) -> Node | None:
     graph = sotw.graph()
     if graph is None:
         return None
-    return graph.value(action, LADA.actionDateTime)
+    return graph.value(action, LADA.atTime)
 
 
 # Operandi del ConstraintSatisfier e le altre sue triple, escluso rdf:type.

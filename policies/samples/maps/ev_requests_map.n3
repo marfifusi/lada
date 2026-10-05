@@ -21,11 +21,8 @@
 }
 =>
 {
-  _:requestAssertion a lada:RequestAssertion .
-  _:requestAssertion lada:fromParameter ?param .
-  _:requestAssertion lada:hasConstraintSatisfier _:constraintSatisfier .
-
   _:constraintSatisfier a lada:ConstraintSatisfier .
+  _:constraintSatisfier lada:fromParameter ?param .
   _:constraintSatisfier odrl:leftOperand odrl:dateTime .
   _:constraintSatisfier odrl:operator odrl:eq .
   _:constraintSatisfier odrl:rightOperand ?value .
@@ -46,11 +43,8 @@
 }
 =>
 {
-  _:requestAssertion a lada:RequestAssertion .
-  _:requestAssertion lada:fromParameter ?param .
-  _:requestAssertion lada:hasConstraintSatisfier _:constraintSatisfier .
-
   _:constraintSatisfier a lada:ConstraintSatisfier .
+  _:constraintSatisfier lada:fromParameter ?param .
   _:constraintSatisfier odrl:leftOperand ex:dayOfWeek .
   _:constraintSatisfier odrl:operator odrl:eq .
   _:constraintSatisfier odrl:rightOperand "dayOfWeek"^^xsd:string .
@@ -69,11 +63,8 @@
 }
 =>
 {
-  _:requestAssertion a lada:RequestAssertion .
-  _:requestAssertion lada:fromParameter ?param .
-  _:requestAssertion lada:hasConstraintSatisfier _:constraintSatisfier .
-
   _:constraintSatisfier a lada:ConstraintSatisfier .
+  _:constraintSatisfier lada:fromParameter ?param .
   _:constraintSatisfier odrl:leftOperand odrl:resolution .
   _:constraintSatisfier odrl:operator odrl:eq .
   _:constraintSatisfier odrl:rightOperand ?value .
@@ -82,7 +73,7 @@
 
 
 ###############################################################################
-# Se nessuna altra regola ha già creato una RequestAssertion da un
+# Se nessuna altra regola ha già creato un ConstraintSatisfier da un
 # RequestParameter, la feature del parametro è il leftOperand del
 # ConstraintSatisfier. Così la policy può confrontare il proprio
 # leftOperand con la feature.
@@ -92,17 +83,14 @@
   ?param sotw:describesFeature ?feature .
   ?param sotw:value ?value .
   _:scope log:notIncludes {
-    ?assertion a lada:RequestAssertion .
-    ?assertion lada:fromParameter ?param .
+    ?satisfier a lada:ConstraintSatisfier .
+    ?satisfier lada:fromParameter ?param .
   } .
 }
 =>
 {
-  _:requestAssertion a lada:RequestAssertion .
-  _:requestAssertion lada:fromParameter ?param .
-  _:requestAssertion lada:hasConstraintSatisfier _:constraintSatisfier .
-
   _:constraintSatisfier a lada:ConstraintSatisfier .
+  _:constraintSatisfier lada:fromParameter ?param .
   _:constraintSatisfier odrl:leftOperand ?feature .
   _:constraintSatisfier odrl:operator odrl:eq .
   _:constraintSatisfier odrl:rightOperand ?value .
