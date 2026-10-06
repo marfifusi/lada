@@ -2,6 +2,7 @@ from rdflib import Graph
 from rdflib.term import Node
 
 from evaluator import n3_engine
+from evaluator import ontology_cache
 from evaluator.rule import action_class
 from evaluator.rule import assignee
 from evaluator.rule import permission_active
@@ -15,6 +16,7 @@ REQUEST_MAP = "policies/samples/maps/ev_requests_map.n3"
 
 # Apre un file JSON-LD e lo carica come grafo RDF
 def open_rdflib(file: str) -> Graph:
+    ontology_cache.install()
     graph = Graph()
     graph.parse(file, format="json-ld")
     # Associa i prefissi noti per stampare URI in forma compatta

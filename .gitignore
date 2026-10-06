@@ -2,3 +2,6 @@
 /docs/
 .cursor/
 .idea/
+
+# Cache locale dei dati remoti per non riscaricarli. Il progetto crea .cache al primo parse.
+.cache/

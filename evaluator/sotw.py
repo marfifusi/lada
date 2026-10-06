@@ -5,6 +5,7 @@
 from rdflib import Graph
 
 from evaluator import n3_engine
+from evaluator import ontology_cache
 from evaluator.vocab import namespaces
 
 # Regole N3 che traducono il contesto dello SOTW in lada:SotwAction.
@@ -32,6 +33,7 @@ def graph() -> Graph | None:
 
 # Carica il file SOTW come grafo RDF, senza esporlo alle funzioni di valutazione.
 def _load_graph(path: str) -> Graph:
+    ontology_cache.install()
     graph = Graph()
     graph.parse(path, format="json-ld")
     for prefix, ns in namespaces.items():
