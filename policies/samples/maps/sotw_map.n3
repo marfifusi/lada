@@ -12,6 +12,20 @@
 
 
 ###############################################################################
+# odrl:partOf è transitiva: se A è parte di B e B è parte di C, A è parte di C.
+###############################################################################
+{
+  ?a odrl:partOf ?b .
+  ?b odrl:partOf ?c .
+}
+=>
+{
+  ?a odrl:partOf ?c .
+} .
+###############################################################################
+
+
+###############################################################################
 # Un pagamento nello SOTW esprime un odrl:payAmount per le policy
 ###############################################################################
 {
@@ -26,7 +40,8 @@
   # La action che viene confrontata con la duty nella policy
   _:sotwAction a lada:SotwAction .
   _:sotwAction lada:fromContext ?param .
-  _:sotwAction lada:dutyReference ?cid .
+  _:sotwAction sotw:conditionId ?cid .
+  _:sotwAction lada:actionType odrl:compensate .
   _:sotwAction lada:hasConstraintSatisfier _:constraintSatisfier .
 
   # datetime dell'azione

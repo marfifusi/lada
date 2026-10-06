@@ -1,6 +1,7 @@
 from evaluator import sotw
 from evaluator.evaluate import open_evaluation_request, open_rdflib
 from evaluator.rule import action_class
+from evaluator.rule import target
 from evaluator.rule.permission_active import ODRL, is_permission_active
 
 
@@ -175,6 +176,89 @@ def test_action_c2_3():
     print(f"Permission {permission} action class: {matched}")
 
 
+# test_target: evaluatedTarget della request è uguale a odrl:target della Permission.
+
+# Caso A1-1: document/1234 nella request e nella policy
+def test_target_a1_1():
+    policy = open_rdflib("policies/samples/policies/a1_policy.json")
+    request = open_evaluation_request("policies/samples/ev_requests/a1-1_request.json")
+    permission = next(policy.objects(None, ODRL.permission))
+    matched = target.matches(policy, permission, request)
+    print(f"Permission {permission} target: {matched}")
+
+
+# Caso A1-2: document/1234 nella request e nella policy
+def test_target_a1_2():
+    policy = open_rdflib("policies/samples/policies/a1_policy.json")
+    request = open_evaluation_request("policies/samples/ev_requests/a1-2_request.json")
+    permission = next(policy.objects(None, ODRL.permission))
+    matched = target.matches(policy, permission, request)
+    print(f"Permission {permission} target: {matched}")
+
+
+# Caso B1-1: document/1234 nella request e nella policy
+def test_target_b1_1():
+    policy = open_rdflib("policies/samples/policies/b1_policy.json")
+    request = open_evaluation_request("policies/samples/ev_requests/b1-1_request.json")
+    permission = next(policy.objects(None, ODRL.permission))
+    matched = target.matches(policy, permission, request)
+    print(f"Permission {permission} target: {matched}")
+
+
+# Caso B1-2: document/1234 nella request e nella policy
+def test_target_b1_2():
+    policy = open_rdflib("policies/samples/policies/b1_policy.json")
+    request = open_evaluation_request("policies/samples/ev_requests/b1-2_request.json")
+    permission = next(policy.objects(None, ODRL.permission))
+    matched = target.matches(policy, permission, request)
+    print(f"Permission {permission} target: {matched}")
+
+
+# Caso C1-1: music/1999.mp3 nella request e nella policy
+def test_target_c1_1():
+    policy = open_rdflib("policies/samples/policies/c1_policy.json")
+    request = open_evaluation_request("policies/samples/ev_requests/c1-1_request.json")
+    permission = next(policy.objects(None, ODRL.permission))
+    matched = target.matches(policy, permission, request)
+    print(f"Permission {permission} target: {matched}")
+
+
+# Caso C1-2: music/1999.mp3 nella request e nella policy
+def test_target_c1_2():
+    policy = open_rdflib("policies/samples/policies/c1_policy.json")
+    request = open_evaluation_request("policies/samples/ev_requests/c1-2_request.json")
+    permission = next(policy.objects(None, ODRL.permission))
+    matched = target.matches(policy, permission, request)
+    print(f"Permission {permission} target: {matched}")
+
+
+# Caso C2-1: music/1999.mp3 nella request e nella policy
+def test_target_c2_1():
+    policy = open_rdflib("policies/samples/policies/c2_policy.json")
+    request = open_evaluation_request("policies/samples/ev_requests/c2-1_request.json")
+    permission = next(policy.objects(None, ODRL.permission))
+    matched = target.matches(policy, permission, request)
+    print(f"Permission {permission} target: {matched}")
+
+
+# Caso C2-2: music/1999.mp3 nella request e nella policy
+def test_target_c2_2():
+    policy = open_rdflib("policies/samples/policies/c2_policy.json")
+    request = open_evaluation_request("policies/samples/ev_requests/c2-2_request.json")
+    permission = next(policy.objects(None, ODRL.permission))
+    matched = target.matches(policy, permission, request)
+    print(f"Permission {permission} target: {matched}")
+
+
+# Caso C2-3: music/1999.mp3 nella request e nella policy
+def test_target_c2_3():
+    policy = open_rdflib("policies/samples/policies/c2_policy.json")
+    request = open_evaluation_request("policies/samples/ev_requests/c2-3_request.json")
+    permission = next(policy.objects(None, ODRL.permission))
+    matched = target.matches(policy, permission, request)
+    print(f"Permission {permission} target: {matched}")
+
+
 if __name__ == "__main__":
     # Attivazione della Permission (constraint e duty).
     test_active_a1_1()
@@ -196,3 +280,13 @@ if __name__ == "__main__":
     test_action_c2_1()
     test_action_c2_2()
     test_action_c2_3()
+    # Target della Permission rispetto a evaluatedTarget della request.
+    test_target_a1_1()
+    test_target_a1_2()
+    test_target_b1_1()
+    test_target_b1_2()
+    test_target_c1_1()
+    test_target_c1_2()
+    test_target_c2_1()
+    test_target_c2_2()
+    test_target_c2_3()

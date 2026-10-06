@@ -2,6 +2,7 @@ from rdflib import Graph
 from rdflib.term import Node
 
 from evaluator import sotw
+from evaluator.rule import action_class
 from evaluator.rule import compare as cmp
 from evaluator.rule import permission_active as active
 from evaluator.vocab import namespaces
@@ -10,6 +11,7 @@ from evaluator.vocab import namespaces
 ODRL = namespaces["odrl"]
 RDF = namespaces["rdf"]
 LADA = namespaces["lada"]
+SOTW = namespaces["sotw"]
 
 # Tripla leftOperand / operator / rightOperand, confrontata a parte.
 _OPERANDS = frozenset({ODRL.leftOperand, ODRL.operator, ODRL.rightOperand})
@@ -27,10 +29,11 @@ def is_active(policy: Graph, duty: Node, request: Graph) -> bool:
     )
 
 
-# True se la duty è fulfilled: active, una SotwAction con lo stesso id,
-# data dell'azione antecedente al dateTime della request, e ogni refinement
-# soddisfatta da un ConstraintSatisfier di quell'azione.
-# Target e assignee della duty non entrano in questo controllo.
+# True se la duty è fulfilled: active, e nello SOTW c'è una SotwAction
+# con lo stesso conditionId, lo stesso actionType dell'azione della duty,
+# data antecedente al dateTime della request, lo stesso target e lo stesso
+# assignee se la duty li specifica, e ogni refinement soddisfatta da un
+# ConstraintSatisfier.
 def is_fulfilled(policy: Graph, duty: Node, request: Graph) -> bool:
     if not is_active(policy, duty, request):
         return False
@@ -41,11 +44,18 @@ def is_fulfilled(policy: Graph, duty: Node, request: Graph) -> bool:
     if request_time is None:
         return False
     refinements = list(policy.objects(action, ODRL.refinement))
-    for sotw_action in actions_for_duty(duty):
+    expected_type = action_class.action_type(policy, action)
+    duty_target = policy.value(duty, ODRL.target)
+    duty_assignee = policy.value(duty, ODRL.assignee)
+    for sotw_action in actions_for_duty(duty, expected_type):
         action_time = sotw_action["action_datetime"]
         if action_time is None:
             continue
         if not cmp.compare_datetimes(action_time, ODRL.lt, request_time):
+            continue
+        if not _target_matches(duty_target, sotw_action):
+            continue
+        if not _assignee_matches(duty_assignee, sotw_action):
             continue
         if all(
             _refinement_satisfied(policy, refinement, request, sotw_action)
@@ -53,6 +63,20 @@ def is_fulfilled(policy: Graph, duty: Node, request: Graph) -> bool:
         ):
             return True
     return False
+
+
+# Se la duty ha un target, lada:actionTarget della SotwAction deve essere quello.
+def _target_matches(duty_target: Node | None, sotw_action: dict) -> bool:
+    if duty_target is None:
+        return True
+    return sotw_action["action_target"] == duty_target
+
+
+# Se la duty ha un assignee, lada:actionAssignee della SotwAction deve essere quello.
+def _assignee_matches(duty_assignee: Node | None, sotw_action: dict) -> bool:
+    if duty_assignee is None:
+        return True
+    return sotw_action["action_assignee"] == duty_assignee
 
 
 # True se un ConstraintSatisfier di questa SotwAction soddisfa la refinement.
@@ -114,23 +138,26 @@ def _extra_triples_match(policy: Graph, refinement: Node, satisfier: dict) -> bo
     return True
 
 
-# Azioni SOTW (lada:SotwAction) il cui lada:dutyReference è la duty.
-# Ogni azione porta la data dell'azione e i ConstraintSatisfier.
-def actions_for_duty(duty: Node) -> list[dict]:
+# SotwAction con sotw:conditionId uguale alla duty e lada:actionType
+# uguale alla classe dell'azione della duty. Ognuna porta data e satisfier.
+def actions_for_duty(duty: Node, action_type: Node) -> list[dict]:
     graph = sotw.graph()
     if graph is None:
         return []
     return [
         _action_record(action)
         for action in graph.subjects(RDF.type, LADA.SotwAction)
-        if graph.value(action, LADA.dutyReference) == duty
+        if graph.value(action, SOTW.conditionId) == duty
+        and graph.value(action, LADA.actionType) == action_type
     ]
 
 
-# Data dell'azione e satisfier di una SotwAction.
+# Data, target, assignee e satisfier di una SotwAction.
 def _action_record(action: Node) -> dict:
     return {
         "action_datetime": _action_datetime(action),
+        "action_target": _action_target(action),
+        "action_assignee": _action_assignee(action),
         "satisfiers": _satisfiers(action),
     }
 
@@ -145,6 +172,22 @@ def _satisfiers(action: Node) -> list[dict]:
         for satisfier in graph.objects(action, LADA.hasConstraintSatisfier)
         if (satisfier, RDF.type, LADA.ConstraintSatisfier) in graph
     ]
+
+
+# IRI lada:actionAssignee dell'azione. None se manca.
+def _action_assignee(action: Node) -> Node | None:
+    graph = sotw.graph()
+    if graph is None:
+        return None
+    return graph.value(action, LADA.actionAssignee)
+
+
+# IRI lada:actionTarget dell'azione. None se manca.
+def _action_target(action: Node) -> Node | None:
+    graph = sotw.graph()
+    if graph is None:
+        return None
+    return graph.value(action, LADA.actionTarget)
 
 
 # Letterale lada:atTime dell'azione.
