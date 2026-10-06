@@ -41,7 +41,7 @@ def is_permission_active(
 
 
 # Verifica se un Constraint o una Refinement è satisfied.
-# Senza valore esplicito lo legge da un ConstraintSatisfier della request (stesso leftOperand).
+# Senza valore esplicito lo legge da un ConstraintSatisfier dell'action intention (stesso leftOperand).
 # Con use_request=False usa actual, per esempio il rightOperand di un ConstraintSatisfier dello SOTW.
 def is_constraint_satisfied(
     policy: Graph,
@@ -52,7 +52,7 @@ def is_constraint_satisfied(
     use_request: bool = True,
 ) -> bool:
     """Il nodo è satisfied se operator e rightOperand confrontano un valore.
-    Di default il valore è il ConstraintSatisfier della request con lo stesso leftOperand.
+    Di default il valore è il ConstraintSatisfier dell'action intention con lo stesso leftOperand.
     Con use_request=False si usa actual; se manca, False.
     Il tipo dei due valori sceglie il confronto.
     """
@@ -89,11 +89,13 @@ def request_datetime(request: Graph) -> Node | None:
     return _constraint_satisfier_value(request, ODRL.dateTime)
 
 
-# rightOperand del lada:ConstraintSatisfier (operatore eq) con quel leftOperand.
-# Un nodo con gli stessi operandi ma senza quel tipo viene ignorato; None se manca.
+# rightOperand del ConstraintSatisfier appeso a lada:actionIntention
+# (operatore eq) con quel leftOperand. None se manca.
 def _constraint_satisfier_value(request: Graph, left: Node) -> Node | None:
-    for satisfier in request.subjects(ODRL.leftOperand, left):
+    for satisfier in request.objects(LADA.actionIntention, LADA.hasConstraintSatisfier):
         if (satisfier, RDF.type, LADA.ConstraintSatisfier) not in request:
+            continue
+        if request.value(satisfier, ODRL.leftOperand) != left:
             continue
         if request.value(satisfier, ODRL.operator) != ODRL.eq:
             continue

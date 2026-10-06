@@ -11,75 +11,99 @@
 
 
 ###############################################################################
-# Un request parameter di tipo sotw:CurrentXSDDateTime esprime
-# un odrl:datetime per le policy
+# Una EvaluationRequest esprime l'azione che si intende compiere.
 ###############################################################################
 {
-  ?param a sotw:RequestParameter .
-  ?param sotw:describesFeature sotw:CurrentXSDDateTime .
-  ?param sotw:value ?value .
+  ?evr a sotw:EvaluationRequest .
+  ?evr sotw:evaluatedAction ?action .
 }
 =>
 {
-  _:constraintSatisfier a lada:ConstraintSatisfier .
-  _:constraintSatisfier lada:fromParameter ?param .
-  _:constraintSatisfier odrl:leftOperand odrl:dateTime .
-  _:constraintSatisfier odrl:operator odrl:eq .
-  _:constraintSatisfier odrl:rightOperand ?value .
+  lada:actionIntention a lada:ActionIntention .
+  lada:actionIntention lada:fromRequest ?evr .
+  lada:actionIntention lada:intentionOf ?action .
 } .
 ###############################################################################
 
 
 ###############################################################################
 # Un request parameter di tipo sotw:CurrentXSDDateTime esprime
-# un ex:dayOfWeek per le policy. Il segnaposto "dayOfWeek"^^xsd:string
-# verrà sostituito dal nome del giorno giusto con una modifica applicata
-# hard-coded, pyling-n3 non supporta questo calcolo.
+# un odrl:datetime per le policy, appeso all'action intention.
 ###############################################################################
 {
-  ?param a sotw:RequestParameter .
+  lada:actionIntention lada:fromRequest ?evr .
+  ?evr sotw:requestParameter ?param .
   ?param sotw:describesFeature sotw:CurrentXSDDateTime .
   ?param sotw:value ?value .
 }
 =>
 {
+  lada:actionIntention lada:hasConstraintSatisfier _:constraintSatisfier .
   _:constraintSatisfier a lada:ConstraintSatisfier .
+  _:constraintSatisfier odrl:leftOperand odrl:dateTime .
+  _:constraintSatisfier odrl:operator odrl:eq .
+  _:constraintSatisfier odrl:rightOperand ?value .
   _:constraintSatisfier lada:fromParameter ?param .
+} .
+###############################################################################
+
+
+###############################################################################
+# Un request parameter di tipo sotw:CurrentXSDDateTime esprime
+# un ex:dayOfWeek per le policy, appeso all'action intention.
+# Il segnaposto "dayOfWeek"^^xsd:string verrà sostituito dal nome del
+# giorno giusto con una modifica applicata hard-coded, pyling-n3 non
+# supporta questo calcolo.
+###############################################################################
+{
+  lada:actionIntention lada:fromRequest ?evr .
+  ?evr sotw:requestParameter ?param .
+  ?param sotw:describesFeature sotw:CurrentXSDDateTime .
+  ?param sotw:value ?value .
+}
+=>
+{
+  lada:actionIntention lada:hasConstraintSatisfier _:constraintSatisfier .
+  _:constraintSatisfier a lada:ConstraintSatisfier .
   _:constraintSatisfier odrl:leftOperand ex:dayOfWeek .
   _:constraintSatisfier odrl:operator odrl:eq .
   _:constraintSatisfier odrl:rightOperand "dayOfWeek"^^xsd:string .
+  _:constraintSatisfier lada:fromParameter ?param .
 } .
 ###############################################################################
 
 
 ###############################################################################
 # Un request parameter di tipo sotw:Resolution esprime
-# un odrl:resolution per le policy
+# un odrl:resolution per le policy, appeso all'action intention.
 ###############################################################################
 {
-  ?param a sotw:RequestParameter .
+  lada:actionIntention lada:fromRequest ?evr .
+  ?evr sotw:requestParameter ?param .
   ?param sotw:describesFeature sotw:Resolution .
   ?param sotw:value ?value .
 }
 =>
 {
+  lada:actionIntention lada:hasConstraintSatisfier _:constraintSatisfier .
   _:constraintSatisfier a lada:ConstraintSatisfier .
-  _:constraintSatisfier lada:fromParameter ?param .
   _:constraintSatisfier odrl:leftOperand odrl:resolution .
   _:constraintSatisfier odrl:operator odrl:eq .
   _:constraintSatisfier odrl:rightOperand ?value .
+  _:constraintSatisfier lada:fromParameter ?param .
 } .
 ###############################################################################
 
 
 ###############################################################################
-# Se nessuna altra regola ha già creato un ConstraintSatisfier da un
-# RequestParameter, la feature del parametro è il leftOperand del
-# ConstraintSatisfier. Così la policy può confrontare il proprio
-# leftOperand con la feature.
+# Se nessuna regola ha già creato un ConstraintSatisfier da questo
+# parametro, la feature è il leftOperand del ConstraintSatisfier appeso
+# all'action intention. Una regola nuova in cima non si elenca qui:
+# nel conseguente basta lada:fromParameter sullo stesso parametro.
 ###############################################################################
 {
-  ?param a sotw:RequestParameter .
+  lada:actionIntention lada:fromRequest ?evr .
+  ?evr sotw:requestParameter ?param .
   ?param sotw:describesFeature ?feature .
   ?param sotw:value ?value .
   _:scope log:notIncludes {
@@ -89,10 +113,11 @@
 }
 =>
 {
+  lada:actionIntention lada:hasConstraintSatisfier _:constraintSatisfier .
   _:constraintSatisfier a lada:ConstraintSatisfier .
-  _:constraintSatisfier lada:fromParameter ?param .
   _:constraintSatisfier odrl:leftOperand ?feature .
   _:constraintSatisfier odrl:operator odrl:eq .
   _:constraintSatisfier odrl:rightOperand ?value .
+  _:constraintSatisfier lada:fromParameter ?param .
 } .
 ###############################################################################

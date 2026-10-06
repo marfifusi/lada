@@ -32,7 +32,7 @@
   # datetime dell'azione
   _:sotwAction lada:atTime ?dateTime .
 
-  # ConstraintSatisfier dell'azione (una refinement è una odrl:Constraint)
+  # ConstraintSatisfier dell'azione (una refinement è un odrl:Constraint)
   _:constraintSatisfier a lada:ConstraintSatisfier .
   _:constraintSatisfier odrl:leftOperand odrl:payAmount .
   _:constraintSatisfier odrl:operator odrl:eq .

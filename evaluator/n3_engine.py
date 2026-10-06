@@ -7,7 +7,7 @@ from rdflib.namespace import XSD
 import pyling
 from evaluator.vocab import namespaces
 
-# Namespace usati per leggere il parametro dal ConstraintSatisfier.
+# Namespace usati per leggere la data dal parametro collegato al ConstraintSatisfier.
 ODRL = namespaces["odrl"]
 RDF = namespaces["rdf"]
 LADA = namespaces["lada"]
@@ -43,7 +43,7 @@ def apply(graph: Graph, rules_path: str) -> None:
     _fill_weekday_placeholders(graph)
 
 
-# Sostituisce dayOfWeek sul ConstraintSatisfier con il giorno del parametro collegato.
+# Sostituisce dayOfWeek sul ConstraintSatisfier con il giorno del request parameter collegato.
 def _fill_weekday_placeholders(graph: Graph) -> None:
     satisfiers = list(graph.subjects(ODRL.rightOperand, _WEEKDAY_PLACEHOLDER))
     for satisfier in satisfiers:
