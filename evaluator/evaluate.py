@@ -2,6 +2,11 @@ from rdflib import Graph
 from rdflib.term import Node
 
 from evaluator import n3_engine
+from evaluator.rule import action_class
+from evaluator.rule import assignee
+from evaluator.rule import permission_active
+from evaluator.rule import refinement
+from evaluator.rule import target
 from evaluator.vocab import namespaces
 
 # Regole N3 che traducono i requestParameter in lada:ConstraintSatisfier.
@@ -35,7 +40,12 @@ def print_rdflib(file: str) -> None:
         print(f"  {s.n3(nm)} {p.n3(nm)} {o.n3(nm)}")
 
 
-# Permitted se la Permission è active e coincidono classe, target, assignee e refinement.
-# Il controllo completo non è ancora implementato.
+# True se la Permission è active e coincidono classe, target, assignee e refinement.
 def is_permitted(policy: Graph, permission: Node, request: Graph) -> bool:
-    raise NotImplementedError("Permission evaluation is not implemented yet")
+    return (
+        permission_active.is_permission_active(policy, permission, request)
+        and action_class.matches(policy, permission, request)
+        and target.matches(policy, permission, request)
+        and assignee.matches(policy, permission, request)
+        and refinement.satisfied(policy, permission, request)
+    )
