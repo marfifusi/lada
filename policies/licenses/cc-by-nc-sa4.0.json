@@ -36,6 +36,7 @@
     {
       "action": [
         "cc:Reproduction",
+        "cc:Distribution",
         "cc:DerivativeWorks"
       ],
       "duty": [

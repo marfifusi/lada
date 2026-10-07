@@ -37,6 +37,7 @@
     {
       "action": [
         "cc:Reproduction",
+        "cc:Distribution",
         "cc:DerivativeWorks"
       ],
       "constraint": [
