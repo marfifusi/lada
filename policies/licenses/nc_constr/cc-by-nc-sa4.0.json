@@ -37,7 +37,26 @@
     {
       "action": [
         "cc:Reproduction",
-        "cc:Distribution",
+        "cc:Distribution"
+      ],
+      "constraint": [
+        {
+          "leftOperand": "purpose",
+          "operator": "eq",
+          "rightOperand": "lada:nonCommercialUse"
+        }
+      ],
+      "duty": [
+        {
+          "action": [
+            "cc:Attribution",
+            "cc:Notice"
+          ]
+        }
+      ]
+    },
+    {
+      "action": [
         "cc:DerivativeWorks"
       ],
       "constraint": [

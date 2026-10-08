@@ -33,7 +33,18 @@
     {
       "action": [
         "cc:Reproduction",
-        "cc:Distribution",
+        "cc:Distribution"
+      ],
+      "duty": [
+        {
+          "action": [
+            "cc:Attribution"
+          ]
+        }
+      ]
+    },
+    {
+      "action": [
         "cc:DerivativeWorks"
       ],
       "duty": [
