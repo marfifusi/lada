@@ -61,11 +61,11 @@ def is_permitted(policy: Graph, permission: Node, request: Graph) -> bool:
     )
 
 
-# Cartella dei report generati. Il nome del file è {codice}_report.json.
+# Cartella dei report generati.
 _EV_REPORT_DIR = Path("policies/samples/ev_report")
-# Base degli @id: https://w3id.org/lada/report/{codice}, i nodi interni sono frammenti.
+# Base degli @id: un token esadecimale casuale, i nodi interni sono frammenti.
 _REPORT_IRI = "https://w3id.org/lada/report/"
-# Nome atteso del file di request: {codice}_request.json.
+# Se il file è {codice}_request.json, il report prende il nome {codice}_report.json.
 _REQUEST_NAME = re.compile(r"^(.+)_request\.json$")
 
 # Namespace ODRL, RDF e SOTW per policy, request e stato.
@@ -76,27 +76,24 @@ SOTW = namespaces["sotw"]
 
 # Scrive l'evaluation report del caso e restituisce il path del file.
 # request è il path del JSON-LD, non il grafo: il nome del file si ricava da lì.
-# L'@id del documento è https://w3id.org/lada/report/{codice}, indipendente dal nome del file.
 # Lo State of the World è quello già caricato con sotw.set_source.
 def get_ev_report(policy: Graph, request: str) -> str:
-    code = _request_code(request)
     request_graph = open_evaluation_request(request)
     document = _compliance_report(policy, request_graph)
-    path = _EV_REPORT_DIR / f"{code}_report.json"
+    path = _EV_REPORT_DIR / _report_file_name(request)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(document, indent=2) + "\n", encoding="utf-8")
     return str(path)
 
 
-# Codice del caso dal nome del file, oppure ValueError se il pattern non torna.
-def _request_code(request: str) -> str:
-    match = _REQUEST_NAME.fullmatch(Path(request).name)
-    if match is None:
-        raise ValueError(
-            "Evaluation request name must match {code}_request.json, "
-            f"got {Path(request).name!r}"
-        )
-    return match.group(1)
+# Nome del file di report a partire dal nome della request.
+# {codice}_request.json diventa {codice}_report.json; altrimenti {nome}_report.json.
+def _report_file_name(request: str) -> str:
+    name = Path(request).name
+    match = _REQUEST_NAME.fullmatch(name)
+    if match is not None:
+        return f"{match.group(1)}_report.json"
+    return f"{Path(name).stem}_report.json"
 
 
 # Documento JSON-LD del ComplianceReport per questa policy e questa request.

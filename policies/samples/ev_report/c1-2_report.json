@@ -6,31 +6,31 @@
     "dct": "http://purl.org/dc/terms/",
     "xsd": "http://www.w3.org/2001/XMLSchema#"
   },
-  "@id": "https://w3id.org/lada/report/5bd9464932c9",
+  "@id": "https://w3id.org/lada/report/959bc80cc87a",
   "@type": "report:ComplianceReport",
   "dct:created": {
-    "@value": "2026-10-12T21:07:15.305Z",
+    "@value": "2026-10-12T21:23:51.840Z",
     "@type": "xsd:dateTime"
   },
   "report:policy": "http://example.com/policy/C1",
   "report:evaluationRequest": "http://example.com/policy/evaluationrequest/C12",
   "report:state": "https://ex.org/C12",
   "ex:permissionReport": {
-    "@id": "https://w3id.org/lada/report/5bd9464932c9#permission-1",
+    "@id": "https://w3id.org/lada/report/959bc80cc87a#permission-1",
     "@type": "report:ruleReport",
     "report:rule": "http://example.com/rule/C1",
     "report:activationState": "report:Active",
     "report:controlState": "report:Permit"
   },
   "ex:conditionReport": {
-    "@id": "https://w3id.org/lada/report/5bd9464932c9#condition-1",
+    "@id": "https://w3id.org/lada/report/959bc80cc87a#condition-1",
     "@type": "report:ConditionReport",
     "report:condition": "http://example.com/condition/1",
     "report:activationState": "report:Active",
     "report:deonticState": "report:Fulfilled"
   },
   "ex:actionReport": {
-    "@id": "https://w3id.org/lada/report/5bd9464932c9#action-1",
+    "@id": "https://w3id.org/lada/report/959bc80cc87a#action-1",
     "@type": "report:ActionReport",
     "report:action": "http://example.com/action/1",
     "report:performanceState": "report:Performed"
