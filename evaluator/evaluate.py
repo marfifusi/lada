@@ -1,5 +1,6 @@
 import json
 import re
+import secrets
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -62,6 +63,8 @@ def is_permitted(policy: Graph, permission: Node, request: Graph) -> bool:
 
 # Cartella dei report generati. Il nome del file è {codice}_report.json.
 _EV_REPORT_DIR = Path("policies/samples/ev_report")
+# Base degli @id: https://w3id.org/lada/report/{codice}, i nodi interni sono frammenti.
+_REPORT_IRI = "https://w3id.org/lada/report/"
 # Nome atteso del file di request: {codice}_request.json.
 _REQUEST_NAME = re.compile(r"^(.+)_request\.json$")
 
@@ -72,12 +75,13 @@ SOTW = namespaces["sotw"]
 
 
 # Scrive l'evaluation report del caso e restituisce il path del file.
-# request è il path del JSON-LD, non il grafo: il nome del report si ricava da lì.
+# request è il path del JSON-LD, non il grafo: il nome del file si ricava da lì.
+# L'@id del documento è https://w3id.org/lada/report/{codice}, indipendente dal nome del file.
 # Lo State of the World è quello già caricato con sotw.set_source.
 def get_ev_report(policy: Graph, request: str) -> str:
     code = _request_code(request)
     request_graph = open_evaluation_request(request)
-    document = _compliance_report(policy, request_graph, code)
+    document = _compliance_report(policy, request_graph)
     path = _EV_REPORT_DIR / f"{code}_report.json"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(document, indent=2) + "\n", encoding="utf-8")
@@ -96,7 +100,8 @@ def _request_code(request: str) -> str:
 
 
 # Documento JSON-LD del ComplianceReport per questa policy e questa request.
-def _compliance_report(policy: Graph, request: Graph, code: str) -> dict:
+def _compliance_report(policy: Graph, request: Graph) -> dict:
+    ids = _new_report_ids()
     policy_id = _single(
         policy.subjects(ODRL.permission),
         "Policy graph must contain one policy",
@@ -113,22 +118,22 @@ def _compliance_report(policy: Graph, request: Graph, code: str) -> dict:
     action_reports = []
     for permission in permissions:
         permission_reports.append(
-            _permission_report(policy, permission, request, code)
+            _permission_report(policy, permission, request, ids)
         )
         constraint_reports.extend(
-            _permission_constraint_reports(policy, permission, request, code)
+            _permission_constraint_reports(policy, permission, request, ids)
         )
         for duty in policy.objects(permission, ODRL.duty):
             fulfilled = duty_rule.is_fulfilled(policy, duty, request)
             condition_reports.append(
-                _condition_report(policy, duty, request, code, fulfilled)
+                _condition_report(policy, duty, request, ids, fulfilled)
             )
             constraint_reports.extend(
-                _duty_constraint_reports(policy, duty, request, code)
+                _duty_constraint_reports(policy, duty, request, ids)
             )
             action = policy.value(duty, ODRL.action)
             if action is not None:
-                action_reports.append(_action_report(action, code, fulfilled))
+                action_reports.append(_action_report(action, ids, fulfilled))
     document = {
         "@context": {
             "odrl": "http://www.w3.org/ns/odrl.jsonld",
@@ -137,7 +142,7 @@ def _compliance_report(policy: Graph, request: Graph, code: str) -> dict:
             "dct": "http://purl.org/dc/terms/",
             "xsd": "http://www.w3.org/2001/XMLSchema#",
         },
-        "@id": f"http://example.com/policy-report/{code}",
+        "@id": _policy_report_id(ids),
         "@type": "report:ComplianceReport",
         "dct:created": {
             "@value": _created_now(),
@@ -179,17 +184,33 @@ def _created_now() -> str:
     return now.strftime("%Y-%m-%dT%H:%M:%S.") + f"{now.microsecond // 1000:03d}Z"
 
 
+# Codice esadecimale di 12 cifre, condiviso dagli @id di un ComplianceReport.
+def _new_report_ids() -> dict:
+    return {"code": secrets.token_hex(6), "n": {}}
+
+
+# @id del ComplianceReport: https://w3id.org/lada/report/{code}.
+def _policy_report_id(ids: dict) -> str:
+    return f"{_REPORT_IRI}{ids['code']}"
+
+
+# Frammento del report: {iri}#{kind}-N, con N progressivo per kind.
+def _child_report_id(ids: dict, kind: str) -> str:
+    ids["n"][kind] = ids["n"].get(kind, 0) + 1
+    return f"{_policy_report_id(ids)}#{kind}-{ids['n'][kind]}"
+
+
 # RuleReport della Permission: activation dai constraint e dalle duty, control da is_permitted.
 def _permission_report(
     policy: Graph,
     permission: Node,
     request: Graph,
-    code: str,
+    ids: dict,
 ) -> dict:
     active = permission_active.is_permission_active(policy, permission, request)
     permitted = is_permitted(policy, permission, request)
     return {
-        "@id": f"http://example.com/policy-report/{code}/permission/{_local_name(permission)}",
+        "@id": _child_report_id(ids, "permission"),
         "@type": "report:ruleReport",
         "report:rule": str(permission),
         "report:activationState": "report:Active" if active else "report:Inactive",
@@ -202,16 +223,16 @@ def _permission_constraint_reports(
     policy: Graph,
     permission: Node,
     request: Graph,
-    code: str,
+    ids: dict,
 ) -> list[dict]:
     reports = [
-        _constraint_report(policy, constraint, request, code)
+        _constraint_report(policy, constraint, request, ids)
         for constraint in policy.objects(permission, ODRL.constraint)
     ]
     for node in _refined_nodes(policy, permission):
         for refinement_node in policy.objects(node, ODRL.refinement):
             reports.append(
-                _constraint_report(policy, refinement_node, request, code)
+                _constraint_report(policy, refinement_node, request, ids)
             )
     return reports
 
@@ -221,10 +242,10 @@ def _duty_constraint_reports(
     policy: Graph,
     duty: Node,
     request: Graph,
-    code: str,
+    ids: dict,
 ) -> list[dict]:
     return [
-        _constraint_report(policy, constraint, request, code)
+        _constraint_report(policy, constraint, request, ids)
         for constraint in policy.objects(duty, ODRL.constraint)
     ]
 
@@ -240,11 +261,11 @@ def _constraint_report(
     policy: Graph,
     constraint: Node,
     request: Graph,
-    code: str,
+    ids: dict,
 ) -> dict:
     satisfied = permission_active.is_constraint_satisfied(policy, constraint, request)
     return {
-        "@id": f"http://example.com/policy-report/{code}/constraint/{_local_name(constraint)}",
+        "@id": _child_report_id(ids, "constraint"),
         "@type": "report:ConstraintReport",
         "report:constraint": str(constraint),
         "report:satisfactionState": (
@@ -258,12 +279,12 @@ def _condition_report(
     policy: Graph,
     duty: Node,
     request: Graph,
-    code: str,
+    ids: dict,
     fulfilled: bool,
 ) -> dict:
     active = duty_rule.is_active(policy, duty, request)
     return {
-        "@id": f"http://example.com/policy-report/{code}/condition/{_local_name(duty)}",
+        "@id": _child_report_id(ids, "condition"),
         "@type": "report:ConditionReport",
         "report:condition": str(duty),
         "report:activationState": "report:Active" if active else "report:Inactive",
@@ -272,9 +293,9 @@ def _condition_report(
 
 
 # ActionReport dell'azione della duty: Performed se la duty è fulfilled.
-def _action_report(action: Node, code: str, fulfilled: bool) -> dict:
+def _action_report(action: Node, ids: dict, fulfilled: bool) -> dict:
     return {
-        "@id": f"http://example.com/policy-report/{code}/action/{_local_name(action)}",
+        "@id": _child_report_id(ids, "action"),
         "@type": "report:ActionReport",
         "report:action": str(action),
         "report:performanceState": (
@@ -288,12 +309,3 @@ def _put_reports(document: dict, key: str, reports: list[dict]) -> None:
     if not reports:
         return
     document[key] = reports[0] if len(reports) == 1 else reports
-
-
-# Ultimo frammento dell'IRI, per gli @id dei report annidati.
-def _local_name(node: Node) -> str:
-    text = str(node)
-    for separator in ("#", "/"):
-        if separator in text:
-            text = text.rsplit(separator, 1)[-1]
-    return text or "blank"

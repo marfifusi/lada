@@ -6,31 +6,31 @@
     "dct": "http://purl.org/dc/terms/",
     "xsd": "http://www.w3.org/2001/XMLSchema#"
   },
-  "@id": "http://example.com/policy-report/c1-1",
+  "@id": "https://w3id.org/lada/report/f117d458f0dc",
   "@type": "report:ComplianceReport",
   "dct:created": {
-    "@value": "2026-10-12T18:07:33.610Z",
+    "@value": "2026-10-12T21:07:15.267Z",
     "@type": "xsd:dateTime"
   },
   "report:policy": "http://example.com/policy/C1",
   "report:evaluationRequest": "http://example.com/policy/evaluationrequest/C11",
   "report:state": "https://ex.org/C11",
   "ex:permissionReport": {
-    "@id": "http://example.com/policy-report/c1-1/permission/C1",
+    "@id": "https://w3id.org/lada/report/f117d458f0dc#permission-1",
     "@type": "report:ruleReport",
     "report:rule": "http://example.com/rule/C1",
     "report:activationState": "report:Inactive",
     "report:controlState": "report:Deny"
   },
   "ex:conditionReport": {
-    "@id": "http://example.com/policy-report/c1-1/condition/1",
+    "@id": "https://w3id.org/lada/report/f117d458f0dc#condition-1",
     "@type": "report:ConditionReport",
     "report:condition": "http://example.com/condition/1",
     "report:activationState": "report:Active",
     "report:deonticState": "report:Not-set"
   },
   "ex:actionReport": {
-    "@id": "http://example.com/policy-report/c1-1/action/1",
+    "@id": "https://w3id.org/lada/report/f117d458f0dc#action-1",
     "@type": "report:ActionReport",
     "report:action": "http://example.com/action/1",
     "report:performanceState": "report:Unperformed"
