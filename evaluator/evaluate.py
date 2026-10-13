@@ -18,8 +18,19 @@ from evaluator.rule import refinement
 from evaluator.rule import target
 from evaluator.vocab import namespaces
 
+# Namespace ODRL, RDF e SOTW per policy, request e stato.
+ODRL = namespaces["odrl"]
+RDF = namespaces["rdf"]
+SOTW = namespaces["sotw"]
+
 # Regole N3 che traducono i requestParameter in lada:ConstraintSatisfier.
 REQUEST_MAP = "policies/samples/maps/ev_requests_map.n3"
+# Cartella in cui vengono scritti i report generati.
+_EV_REPORT_DIR = Path("policies/samples/ev_report/generated")
+# Base degli @id: un token esadecimale casuale, i nodi interni sono frammenti.
+_REPORT_IRI = "https://w3id.org/lada/report/"
+# Se il file è {codice}_request.json, il report prende il nome {codice}_report.json.
+_REQUEST_NAME = re.compile(r"^(.+)_request\.json$")
 
 
 # Apre un file JSON-LD e lo carica come grafo RDF
@@ -59,19 +70,6 @@ def is_permitted(policy: Graph, permission: Node, request: Graph) -> bool:
         and assignee.matches(policy, permission, request)
         and refinement.satisfied(policy, permission, request)
     )
-
-
-# Cartella in cui vengono scritti i report generati.
-_EV_REPORT_DIR = Path("policies/samples/ev_report/generated")
-# Base degli @id: un token esadecimale casuale, i nodi interni sono frammenti.
-_REPORT_IRI = "https://w3id.org/lada/report/"
-# Se il file è {codice}_request.json, il report prende il nome {codice}_report.json.
-_REQUEST_NAME = re.compile(r"^(.+)_request\.json$")
-
-# Namespace ODRL, RDF e SOTW per policy, request e stato.
-ODRL = namespaces["odrl"]
-RDF = namespaces["rdf"]
-SOTW = namespaces["sotw"]
 
 
 # Scrive l'evaluation report del caso e restituisce il path del file.
