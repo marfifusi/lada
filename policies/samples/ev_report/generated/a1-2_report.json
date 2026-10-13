@@ -6,26 +6,26 @@
     "dct": "http://purl.org/dc/terms/",
     "xsd": "http://www.w3.org/2001/XMLSchema#"
   },
-  "@id": "https://w3id.org/lada/report/da507ca3c1f0",
+  "@id": "https://w3id.org/lada/report/9077896de49809d3",
   "@type": "report:ComplianceReport",
   "dct:created": {
-    "@value": "2026-10-12T21:23:51.666Z",
+    "@value": "2026-10-13T08:11:01.128Z",
     "@type": "xsd:dateTime"
   },
   "report:policy": "http://example.com/policy/A1",
-  "report:evaluationRequest": "http://example.com/policy/evaluationrequest/A11",
-  "report:state": "https://ex.org/A11",
+  "report:evaluationRequest": "http://example.com/policy/evaluationrequest/A12",
+  "report:state": "https://ex.org/A12",
   "ex:permissionReport": {
-    "@id": "https://w3id.org/lada/report/da507ca3c1f0#permission-1",
+    "@id": "https://w3id.org/lada/report/9077896de49809d3#permission-1",
     "@type": "report:ruleReport",
     "report:rule": "http://example.com/rule/A1",
-    "report:activationState": "report:Active",
-    "report:controlState": "report:Permit"
+    "report:activationState": "report:Inactive",
+    "report:controlState": "report:Deny"
   },
   "ex:constraintReport": {
-    "@id": "https://w3id.org/lada/report/da507ca3c1f0#constraint-1",
+    "@id": "https://w3id.org/lada/report/9077896de49809d3#constraint-1",
     "@type": "report:ConstraintReport",
     "report:constraint": "http://example.com/constraint/A1",
-    "report:satisfactionState": "report:Satisfied"
+    "report:satisfactionState": "report:Not-Satisfied"
   }
 }

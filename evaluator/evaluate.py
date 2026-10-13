@@ -61,8 +61,8 @@ def is_permitted(policy: Graph, permission: Node, request: Graph) -> bool:
     )
 
 
-# Cartella dei report generati.
-_EV_REPORT_DIR = Path("policies/samples/ev_report")
+# Cartella in cui vengono scritti i report generati.
+_EV_REPORT_DIR = Path("policies/samples/ev_report/generated")
 # Base degli @id: un token esadecimale casuale, i nodi interni sono frammenti.
 _REPORT_IRI = "https://w3id.org/lada/report/"
 # Se il file è {codice}_request.json, il report prende il nome {codice}_report.json.
@@ -121,9 +121,10 @@ def _compliance_report(policy: Graph, request: Graph) -> dict:
             _permission_constraint_reports(policy, permission, request, ids)
         )
         for duty in policy.objects(permission, ODRL.duty):
-            fulfilled = duty_rule.is_fulfilled(policy, duty, request)
+            fulfilling = duty_rule.fulfilling_action(policy, duty, request)
+            fulfilled = fulfilling is not None
             condition_reports.append(
-                _condition_report(policy, duty, request, ids, fulfilled)
+                _condition_report(policy, duty, request, ids, fulfilled, fulfilling)
             )
             constraint_reports.extend(
                 _duty_constraint_reports(policy, duty, request, ids)
@@ -181,9 +182,9 @@ def _created_now() -> str:
     return now.strftime("%Y-%m-%dT%H:%M:%S.") + f"{now.microsecond // 1000:03d}Z"
 
 
-# Codice esadecimale di 12 cifre, condiviso dagli @id di un ComplianceReport.
+# Codice esadecimale di 16 cifre, condiviso dagli @id di un ComplianceReport.
 def _new_report_ids() -> dict:
-    return {"code": secrets.token_hex(6), "n": {}}
+    return {"code": secrets.token_hex(8), "n": {}}
 
 
 # @id del ComplianceReport: https://w3id.org/lada/report/{code}.
@@ -271,22 +272,26 @@ def _constraint_report(
     }
 
 
-# ConditionReport della duty. fulfilled è già calcolato: deontic Fulfilled oppure Not-set.
+# ConditionReport della duty. fulfillingAction c'è solo se una SotwAction la soddisfa.
 def _condition_report(
     policy: Graph,
     duty: Node,
     request: Graph,
     ids: dict,
     fulfilled: bool,
+    fulfilling: Node | None,
 ) -> dict:
     active = duty_rule.is_active(policy, duty, request)
-    return {
+    report = {
         "@id": _child_report_id(ids, "condition"),
         "@type": "report:ConditionReport",
         "report:condition": str(duty),
         "report:activationState": "report:Active" if active else "report:Inactive",
         "report:deonticState": "report:Fulfilled" if fulfilled else "report:Not-set",
     }
+    if fulfilling is not None:
+        report["report:fulfillingAction"] = str(fulfilling)
+    return report
 
 
 # ActionReport dell'azione della duty: Performed se la duty è fulfilled.

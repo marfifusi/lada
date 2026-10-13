@@ -35,14 +35,28 @@ def is_active(policy: Graph, duty: Node, request: Graph) -> bool:
 # assignee se la duty li specifica, e ogni refinement soddisfatta da un
 # ConstraintSatisfier.
 def is_fulfilled(policy: Graph, duty: Node, request: Graph) -> bool:
+    return _matching_action(policy, duty, request) is not None
+
+
+# Nodo di fulfillingAction: lada:fromContext della SotwAction che soddisfa
+# la duty, oppure la SotwAction stessa se fromContext manca. None se nessuna la soddisfa.
+def fulfilling_action(policy: Graph, duty: Node, request: Graph) -> Node | None:
+    action = _matching_action(policy, duty, request)
+    if action is None:
+        return None
+    return _action_identity(action)
+
+
+# Prima SotwAction che soddisfa la duty, oppure None.
+def _matching_action(policy: Graph, duty: Node, request: Graph) -> Node | None:
     if not is_active(policy, duty, request):
-        return False
+        return None
     action = policy.value(duty, ODRL.action)
     if action is None:
-        return False
+        return None
     request_time = active.request_datetime(request)
     if request_time is None:
-        return False
+        return None
     refinements = list(policy.objects(action, ODRL.refinement))
     expected_type = action_class.action_type(policy, action)
     duty_target = policy.value(duty, ODRL.target)
@@ -61,8 +75,19 @@ def is_fulfilled(policy: Graph, duty: Node, request: Graph) -> bool:
             _refinement_satisfied(policy, refinement, request, sotw_action)
             for refinement in refinements
         ):
-            return True
-    return False
+            return sotw_action["node"]
+    return None
+
+
+# lada:fromContext se presente, altrimenti l'id della SotwAction.
+def _action_identity(action: Node) -> Node:
+    graph = sotw.graph()
+    if graph is None:
+        return action
+    context = graph.value(action, LADA.fromContext)
+    if context is not None:
+        return context
+    return action
 
 
 # Se la duty ha un target, lada:actionTarget della SotwAction deve essere quello.
@@ -152,9 +177,10 @@ def actions_for_duty(duty: Node, action_type: Node) -> list[dict]:
     ]
 
 
-# Data, target, assignee e satisfier di una SotwAction.
+# Nodo, data, target, assignee e satisfier di una SotwAction.
 def _action_record(action: Node) -> dict:
     return {
+        "node": action,
         "action_datetime": _action_datetime(action),
         "action_target": _action_target(action),
         "action_assignee": _action_assignee(action),
