@@ -51,7 +51,6 @@
   "prohibition": [
     {
       "action": [
-        "cc:DerivativeWorks",
         "cc:CommercialUse"
       ]
     }

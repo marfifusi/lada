@@ -43,6 +43,7 @@ class UncertainTimeWindowError(Exception):
 def compare_datetimes(left: Node, operator: Node, right: Node) -> bool:
     left_win = _to_time_window(left)
     right_win = _to_time_window(right)
+    # Containment stretto: eq, neq, lteq e gteq diventano incerti; lt e gt restano decisi.
     uncertain = _request_window_contains_policy(left_win, right_win)
     if operator == ODRL.lt:
         return _window_entirely_before(left_win, right_win)
@@ -80,6 +81,7 @@ def _to_time_window(value: Node) -> tuple[datetime, datetime]:
     if isinstance(py, date):
         return datetime.combine(py, time.min), datetime.combine(py, time.max)
     text = str(py)
+    # Testo ISO: una data è l'intera giornata, un dateTime è un istante.
     try:
         parsed_date = date.fromisoformat(text)
         return (
@@ -130,6 +132,7 @@ def _window_contains(
 def _request_window_contains_policy(
     left: tuple[datetime, datetime], right: tuple[datetime, datetime]
 ) -> bool:
+    # Finestre uguali non sono incerte: eq resta decidibile quando coincidono.
     return _window_contains(left, right) and not _window_contains(right, left)
 
 
@@ -211,6 +214,7 @@ def _local_name(term: Node) -> str:
 # True se il valore RDF è un intero (xsd:integer e i tipi derivati, non un booleano).
 def is_integer(value: Node) -> bool:
     py = _python_value(value)
+    # bool è sottoclasse di int: True non conta come intero del constraint.
     return isinstance(py, int) and not isinstance(py, bool)
 
 
@@ -254,6 +258,7 @@ def is_weekday_value(value: Node) -> bool:
 
 # Classe del valore: integer, date, datetime, dayofweek, string, uri oppure other.
 def value_kind(value: Node) -> str:
+    # Prima i tipi più specifici: datetime prima di date, l'intero prima del nome del giorno.
     if is_integer(value):
         return "integer"
     if is_datetime_value(value):

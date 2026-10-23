@@ -14,11 +14,13 @@ SOTW = namespaces["sotw"]
 # o nello SOTW evaluatedParty odrl:partOf l'assignee.
 def matches(policy: Graph, permission: Node, request: Graph) -> bool:
     assignees = list(policy.objects(permission, ODRL.assignee))
+    # Nessun assignee: la Permission non vincola la parte.
     if not assignees:
         return True
     evaluated = _evaluated_party(request)
     if evaluated is None:
         return False
+    # Identità, oppure evaluatedParty è odrl:partOf l'assignee nello SOTW.
     return any(
         assignee == evaluated or _part_of(evaluated, assignee)
         for assignee in assignees

@@ -16,6 +16,7 @@ def matches(policy: Graph, permission: Node, request: Graph) -> bool:
     evaluated = _evaluated_target(request)
     if evaluated is None:
         return False
+    # A differenza dell'assignee, senza odrl:target any() sulla lista vuota è False.
     return any(
         target == evaluated or _part_of(evaluated, target)
         for target in policy.objects(permission, ODRL.target)

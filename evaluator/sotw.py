@@ -20,6 +20,7 @@ _graph: Graph | None = None
 def set_source(path: str | None) -> None:
     global _source_path, _graph
     _source_path = path
+    # Si svuota subito: path None, o un parse che fallisce, non lascia il grafo precedente.
     _graph = None
     if path is not None:
         _graph = _load_graph(path)
@@ -36,6 +37,7 @@ def _load_graph(path: str) -> Graph:
     ontology_cache.install()
     graph = Graph()
     graph.parse(path, format="json-ld")
+    # Stessi prefissi del grafo della policy, così le stampe restano compatte.
     for prefix, ns in namespaces.items():
         graph.bind(prefix, ns)
     return graph

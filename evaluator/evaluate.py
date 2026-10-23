@@ -111,6 +111,7 @@ def _compliance_report(policy: Graph, request: Graph) -> dict:
     constraint_reports = []
     condition_reports = []
     action_reports = []
+    # Per ogni Permission: stato della regola, i constraint e le duty collegate.
     for permission in permissions:
         permission_reports.append(
             _permission_report(policy, permission, request, ids)
@@ -119,6 +120,7 @@ def _compliance_report(policy: Graph, request: Graph) -> dict:
             _permission_constraint_reports(policy, permission, request, ids)
         )
         for duty in policy.objects(permission, ODRL.duty):
+            # None se nessuna SotwAction nello SOTW compie la duty.
             fulfilling = duty_rule.fulfilling_action(policy, duty, request)
             fulfilled = fulfilling is not None
             condition_reports.append(
@@ -128,9 +130,11 @@ def _compliance_report(policy: Graph, request: Graph) -> dict:
                 _duty_constraint_reports(policy, duty, request, ids)
             )
             action = policy.value(duty, ODRL.action)
+            # Senza odrl:action la duty non ha un ActionReport.
             if action is not None:
                 action_reports.append(_action_report(action, ids, fulfilled))
     document = {
+        # Prefissi allineati agli esempi in policies/samples/ev_report/reference/.
         "@context": {
             "odrl": "http://www.w3.org/ns/odrl.jsonld",
             "ex": "http://example.org/",
@@ -155,9 +159,11 @@ def _compliance_report(policy: Graph, request: Graph) -> dict:
     return document
 
 
-# Un solo nodo, oppure ValueError se manca o ce n'è più di uno.
+# Un solo nodo distinto, oppure ValueError se manca o ce n'è più di uno.
+# Lo stesso soggetto può uscire una volta per tripla: più permission non sono più policy.
 def _single(nodes, message: str) -> Node:
-    found = list(nodes)
+    # fromkeys toglie i duplicati e tiene l'ordine: lo stesso soggetto esce una volta per tripla.
+    found = list(dict.fromkeys(nodes))
     if len(found) != 1:
         raise ValueError(message)
     return found[0]
@@ -177,6 +183,7 @@ def _sotw_id() -> Node:
 # Istante UTC di creazione, con i millisecondi.
 def _created_now() -> str:
     now = datetime.now(timezone.utc)
+    # Millisecondi a tre cifre: datetime dà i microsecondi, qui si tengono solo i primi tre.
     return now.strftime("%Y-%m-%dT%H:%M:%S.") + f"{now.microsecond // 1000:03d}Z"
 
 
@@ -192,6 +199,7 @@ def _policy_report_id(ids: dict) -> str:
 
 # Frammento del report: {iri}#{kind}-N, con N progressivo per kind.
 def _child_report_id(ids: dict, kind: str) -> str:
+    # Parte da 1: permission-1, constraint-1, condition-1, …
     ids["n"][kind] = ids["n"].get(kind, 0) + 1
     return f"{_policy_report_id(ids)}#{kind}-{ids['n'][kind]}"
 
@@ -203,6 +211,7 @@ def _permission_report(
     request: Graph,
     ids: dict,
 ) -> dict:
+    # Active non implica Permit: il control state aggiunge classe, target, assignee e refinement.
     active = permission_active.is_permission_active(policy, permission, request)
     permitted = is_permitted(policy, permission, request)
     return {
@@ -226,6 +235,7 @@ def _permission_constraint_reports(
         for constraint in policy.objects(permission, ODRL.constraint)
     ]
     for node in _refined_nodes(policy, permission):
+        # Le refinement su action, target e assignee entrano anch'esse come ConstraintReport.
         for refinement_node in policy.objects(node, ODRL.refinement):
             reports.append(
                 _constraint_report(policy, refinement_node, request, ids)
@@ -308,4 +318,5 @@ def _action_report(action: Node, ids: dict, fulfilled: bool) -> dict:
 def _put_reports(document: dict, key: str, reports: list[dict]) -> None:
     if not reports:
         return
+    # Lista solo quando i report sono più di uno.
     document[key] = reports[0] if len(reports) == 1 else reports

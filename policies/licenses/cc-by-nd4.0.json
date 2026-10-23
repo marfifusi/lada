@@ -47,12 +47,5 @@
         }
       ]
     }
-  ],
-  "prohibition": [
-    {
-      "action": [
-        "cc:DerivativeWorks"
-      ]
-    }
   ]
 }

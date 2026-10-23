@@ -12,6 +12,7 @@ SOTW = namespaces["sotw"]
 # True se evaluatedAction della request è una delle classi odrl:action della Permission.
 def matches(policy: Graph, permission: Node, request: Graph) -> bool:
     evaluated = _evaluated_action(request)
+    # Senza evaluatedAction non c'è una classe da confrontare.
     if evaluated is None:
         return False
     return any(

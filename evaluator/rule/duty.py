@@ -49,12 +49,14 @@ def fulfilling_action(policy: Graph, duty: Node, request: Graph) -> Node | None:
 
 # Prima SotwAction che soddisfa la duty, oppure None.
 def _matching_action(policy: Graph, duty: Node, request: Graph) -> Node | None:
+    # Una duty inactive non viene soddisfatta da nessuna azione.
     if not is_active(policy, duty, request):
         return None
     action = policy.value(duty, ODRL.action)
     if action is None:
         return None
     request_time = active.request_datetime(request)
+    # Senza dateTime sulla request non c'è un "prima" con cui confrontare atTime.
     if request_time is None:
         return None
     refinements = list(policy.objects(action, ODRL.refinement))
@@ -65,12 +67,14 @@ def _matching_action(policy: Graph, duty: Node, request: Graph) -> Node | None:
         action_time = sotw_action["action_datetime"]
         if action_time is None:
             continue
+        # L'azione deve essere già avvenuta rispetto al momento della request.
         if not cmp.compare_datetimes(action_time, ODRL.lt, request_time):
             continue
         if not _target_matches(duty_target, sotw_action):
             continue
         if not _assignee_matches(duty_assignee, sotw_action):
             continue
+        # all() su lista vuota è True: un'azione senza refinement può comunque andare bene.
         if all(
             _refinement_satisfied(policy, refinement, request, sotw_action)
             for refinement in refinements
@@ -85,6 +89,7 @@ def _action_identity(action: Node) -> Node:
     if graph is None:
         return action
     context = graph.value(action, LADA.fromContext)
+    # Il report cita il contesto d'origine, non il nodo interno della SotwAction.
     if context is not None:
         return context
     return action
@@ -137,12 +142,15 @@ def _operands_match(
     request: Graph,
     satisfier: dict,
 ) -> bool:
+    # Senza la tripla degli operandi restano solo i predicati extra.
     if not _has_operand(policy, refinement):
         return True
     if policy.value(refinement, ODRL.leftOperand) != satisfier["left"]:
         return False
+    # Il satisfier registra il valore osservato: l'operatore è sempre eq.
     if satisfier["operator"] != ODRL.eq:
         return False
+    # actual è il rightOperand del satisfier, non quello dell'action intention.
     return active.is_constraint_satisfied(
         policy, refinement, request, satisfier["right"], use_request=False
     )
@@ -156,6 +164,7 @@ def _has_operand(policy: Graph, refinement: Node) -> bool:
 # Ogni predicato extra della refinement, con lo stesso valore, sta sul ConstraintSatisfier.
 def _extra_triples_match(policy: Graph, refinement: Node, satisfier: dict) -> bool:
     for predicate, obj in policy.predicate_objects(refinement):
+        # leftOperand, operator, rightOperand e rdf:type non sono parametri extra.
         if predicate in _OPERANDS or predicate == RDF.type:
             continue
         if (predicate, obj) not in satisfier["triples"]:
@@ -172,6 +181,7 @@ def actions_for_duty(duty: Node, action_type: Node) -> list[dict]:
     return [
         _action_record(action)
         for action in graph.subjects(RDF.type, LADA.SotwAction)
+        # Stessa duty (conditionId) e stessa classe di azione.
         if graph.value(action, SOTW.conditionId) == duty
         and graph.value(action, LADA.actionType) == action_type
     ]

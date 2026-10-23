@@ -12,6 +12,7 @@ def test_permitted_a1_1():
     sotw.set_source("policies/samples/sotws/a1-1_sotw.json")
     policy = open_rdflib("policies/samples/policies/a1_policy.json")
     request = open_evaluation_request("policies/samples/ev_requests/a1-1_request.json")
+    # Gli esempi hanno una sola Permission: next prende quella.
     permission = next(policy.objects(None, ODRL.permission))
     permitted = is_permitted(policy, permission, request)
     print(f"Permission {permission} permitted: {permitted}")

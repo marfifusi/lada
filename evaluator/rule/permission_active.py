@@ -24,6 +24,7 @@ def is_permission_active(
     2. tutti i suoi Duty sono fulfilled oppure inactive in S rispetto ad a
     """
     constraints = list(policy.objects(permission, ODRL.constraint))
+    # Un solo constraint non soddisfatto rende la Permission inactive.
     if not all(
         is_constraint_satisfied(policy, constraint, request)
         for constraint in constraints
@@ -31,6 +32,7 @@ def is_permission_active(
         return False
 
     duties = list(policy.objects(permission, ODRL.duty))
+    # Una duty active e non fulfilled blocca l'attivazione.
     if not all(
         is_duty_fulfilled_or_inactive(policy, duty, request)
         for duty in duties
@@ -60,8 +62,10 @@ def is_constraint_satisfied(
     operator = policy.value(constraint, ODRL.operator)
     right = policy.value(constraint, ODRL.rightOperand)
     if left is None or operator is None or right is None:
+        # Tripla incompleta: il constraint non è soddisfatto.
         return False
     if use_request:
+        # Il valore osservato sta sul ConstraintSatisfier dell'action intention.
         actual = _constraint_satisfier_value(request, left)
     if actual is None:
         return False
@@ -93,6 +97,7 @@ def request_datetime(request: Graph) -> Node | None:
 # (operatore eq) con quel leftOperand. None se manca.
 def _constraint_satisfier_value(request: Graph, left: Node) -> Node | None:
     for satisfier in request.objects(LADA.actionIntention, LADA.hasConstraintSatisfier):
+        # Conta solo un ConstraintSatisfier con operator eq e quel leftOperand.
         if (satisfier, RDF.type, LADA.ConstraintSatisfier) not in request:
             continue
         if request.value(satisfier, ODRL.leftOperand) != left:

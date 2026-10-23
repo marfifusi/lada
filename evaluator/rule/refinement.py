@@ -13,8 +13,10 @@ ODRL = namespaces["odrl"]
 def satisfied(policy: Graph, permission: Node, request: Graph) -> bool:
     for node in _refined_nodes(policy, permission):
         for refinement in policy.objects(node, ODRL.refinement):
+            # La prima refinement non soddisfatta fa fallire il controllo.
             if not active.is_constraint_satisfied(policy, refinement, request):
                 return False
+    # Nessuna refinement, oppure tutte soddisfatte.
     return True
 
 

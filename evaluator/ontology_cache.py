@@ -43,6 +43,7 @@ def _source_to_json(source, fragment_id=None, extract_all_scripts=False):
 def _load(url: str) -> dict | list:
     cached = _memory.get(url)
     if cached is not None:
+        # Copia: chi modifica il documento non altera la cache in memoria.
         return copy.deepcopy(cached)
     path = _local_path(url)
     if path.is_file():
@@ -66,6 +67,7 @@ def _local_path(url: str) -> Path:
     if not parts:
         parts = ["index.json"]
     path = (_CACHE_DIR / _segment(parsed.netloc) / Path(*parts)).resolve()
+    # Un URL con .. non deve uscire da .cache/json-ld.
     if not path.is_relative_to(_CACHE_DIR.resolve()):
         raise ValueError(f"Ontology cache path escapes the cache directory: {url}")
     return path
@@ -74,6 +76,7 @@ def _local_path(url: str) -> Path:
 # Rende un segmento di path sicuro come nome di file.
 def _segment(part: str) -> str:
     cleaned = "".join("_" if c in '<>:"|?*' or ord(c) < 32 else c for c in part)
+    # . e .. non sono nomi di file: diventano un trattino basso.
     if cleaned in ("", ".", ".."):
         return "_"
     return cleaned

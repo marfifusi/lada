@@ -34,6 +34,7 @@ _WEEKDAY_NAMES = (
 def apply(graph: Graph, rules_path: str) -> None:
     facts = graph.serialize(format="turtle")
     rules = Path(rules_path).read_text(encoding="utf-8")
+    # False: pyling restituisce solo le triple inferite, i fatti di partenza sono già nel grafo.
     derived = pyling.reason_graph(
         {"sources": [facts, rules]},
         include_input_facts_in_closure=False,
@@ -52,6 +53,7 @@ def _fill_weekday_placeholders(graph: Graph) -> None:
         param = graph.value(satisfier, LADA.fromParameter)
         value = graph.value(param, SOTW.value) if param is not None else None
         name = Literal(_weekday_name(value), datatype=XSD.string)
+        # Si toglie il segnaposto e al suo posto si scrive il nome del giorno.
         graph.remove((satisfier, ODRL.rightOperand, _WEEKDAY_PLACEHOLDER))
         graph.add((satisfier, ODRL.rightOperand, name))
 
