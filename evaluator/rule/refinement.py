@@ -20,6 +20,14 @@ def satisfied(policy: Graph, permission: Node, request: Graph) -> bool:
     return True
 
 
+# Refinement su action, target e assignee della regola, nell'ordine del grafo.
+def of_rule(policy: Graph, rule: Node) -> list[Node]:
+    found = []
+    for node in _refined_nodes(policy, rule):
+        found.extend(policy.objects(node, ODRL.refinement))
+    return found
+
+
 # Nodi della Permission che possono portare odrl:refinement.
 def _refined_nodes(policy: Graph, permission: Node):
     for predicate in (ODRL.action, ODRL.target, ODRL.assignee):

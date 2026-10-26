@@ -47,6 +47,62 @@ def fulfilling_action(policy: Graph, duty: Node, request: Graph) -> Node | None:
     return _action_identity(action)
 
 
+# Tipo, target, assignee e refinement dell'azione della duty rispetto alle SotwAction.
+# evaluated è l'identità dell'azione che adempie la duty, oppure None.
+# Una refinement è soddisfatta se un'azione del tipo giusto, già avvenuta,
+# con target e assignee ammessi, ha un ConstraintSatisfier che la copre.
+def action_checks(policy: Graph, duty: Node, request: Graph) -> dict:
+    action = policy.value(duty, ODRL.action)
+    duty_target = policy.value(duty, ODRL.target)
+    duty_assignee = policy.value(duty, ODRL.assignee)
+    refinements = (
+        list(policy.objects(action, ODRL.refinement)) if action is not None else []
+    )
+    candidates = []
+    if action is not None:
+        candidates = actions_for_duty(duty, action_class.action_type(policy, action))
+    eligible = [
+        item
+        for item in candidates
+        if _eligible(item, request, duty_target, duty_assignee)
+    ]
+    refinement_states = []
+    for node in refinements:
+        identity = None
+        for item in eligible:
+            if _refinement_satisfied(policy, node, request, item):
+                identity = _action_identity(item["node"])
+                break
+        refinement_states.append((node, identity is not None, identity))
+    return {
+        "evaluated": fulfilling_action(policy, duty, request),
+        "type_ok": bool(candidates),
+        "target_ok": duty_target is None
+        or any(_target_matches(duty_target, item) for item in candidates),
+        "party_ok": duty_assignee is None
+        or any(_assignee_matches(duty_assignee, item) for item in candidates),
+        "refinements": refinement_states,
+    }
+
+
+# L'azione dello SOTW è già avvenuta e rispetta target e assignee della duty.
+def _eligible(
+    sotw_action: dict,
+    request: Graph,
+    duty_target: Node | None,
+    duty_assignee: Node | None,
+) -> bool:
+    request_time = active.request_datetime(request)
+    action_time = sotw_action["action_datetime"]
+    if request_time is None or action_time is None:
+        return False
+    if not cmp.compare_datetimes(action_time, ODRL.lt, request_time):
+        return False
+    if not _target_matches(duty_target, sotw_action):
+        return False
+    return _assignee_matches(duty_assignee, sotw_action)
+
+
 # Prima SotwAction che soddisfa la duty, oppure None.
 def _matching_action(policy: Graph, duty: Node, request: Graph) -> Node | None:
     # Una duty inactive non viene soddisfatta da nessuna azione.

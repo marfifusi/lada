@@ -107,32 +107,11 @@ def _policy_report(policy: Graph, request: Graph) -> dict:
     )
     state_id = _sotw_id()
     permissions = list(policy.objects(policy_id, ODRL.permission))
-    permission_reports = []
-    constraint_reports = []
-    condition_reports = []
-    action_reports = []
-    # Per ogni Permission: stato della regola, i constraint e le duty collegate.
-    for permission in permissions:
-        permission_reports.append(
-            _permission_report(policy, permission, request, ids)
-        )
-        constraint_reports.extend(
-            _permission_constraint_reports(policy, permission, request, ids)
-        )
-        for duty in policy.objects(permission, ODRL.duty):
-            # None se nessuna SotwAction nello SOTW compie la duty.
-            fulfilling = duty_rule.fulfilling_action(policy, duty, request)
-            fulfilled = fulfilling is not None
-            condition_reports.append(
-                _condition_report(policy, duty, request, ids, fulfilled, fulfilling)
-            )
-            constraint_reports.extend(
-                _duty_constraint_reports(policy, duty, request, ids)
-            )
-            action = policy.value(duty, ODRL.action)
-            # Senza odrl:action la duty non ha un ActionReport.
-            if action is not None:
-                action_reports.append(_action_report(action, ids, fulfilled))
+    # Un PermissionReport per ogni permission: constraint, action e duty stanno dentro.
+    rule_reports = [
+        _permission_report(policy, permission, request, ids)
+        for permission in permissions
+    ]
     document = {
         # Prefissi allineati agli esempi in policies/samples/ev_report/reference/.
         "@context": {
@@ -152,10 +131,7 @@ def _policy_report(policy: Graph, request: Graph) -> dict:
         "report:evaluationRequest": str(request_id),
         "report:state": str(state_id),
     }
-    _put_reports(document, "ex:permissionReport", permission_reports)
-    _put_reports(document, "ex:constraintReport", constraint_reports)
-    _put_reports(document, "ex:conditionReport", condition_reports)
-    _put_reports(document, "ex:actionReport", action_reports)
+    _put_reports(document, "report:ruleReport", rule_reports)
     return document
 
 
@@ -204,7 +180,7 @@ def _child_report_id(ids: dict, kind: str) -> str:
     return f"{_policy_report_id(ids)}#{kind}-{ids['n'][kind]}"
 
 
-# RuleReport della Permission: activation dai constraint e dalle duty, control da is_permitted.
+# PermissionReport: constraint della regola, azione richiesta, duty e control state.
 def _permission_report(
     policy: Graph,
     permission: Node,
@@ -214,104 +190,163 @@ def _permission_report(
     # Active non implica Permit: il control state aggiunge classe, target, assignee e refinement.
     active = permission_active.is_permission_active(policy, permission, request)
     permitted = is_permitted(policy, permission, request)
-    return {
+    evaluated = action_class.evaluated_action(request)
+    report = {
         "@id": _child_report_id(ids, "permission"),
-        "@type": "report:ruleReport",
+        "@type": "report:PermissionReport",
         "report:rule": str(permission),
-        "report:activationState": "report:Active" if active else "report:Inactive",
-        "report:controlState": "report:Permit" if permitted else "report:Deny",
     }
+    _put_reports(
+        report,
+        "report:constraintReport",
+        [
+            _constraint_report(policy, constraint, request, ids, evaluated)
+            for constraint in policy.objects(permission, ODRL.constraint)
+        ],
+    )
+    report["report:activationState"] = "report:Active" if active else "report:Inactive"
+    action_report = _permission_action_report(policy, permission, request, ids, evaluated)
+    if action_report is not None:
+        report["report:actionReport"] = action_report
+    _put_reports(
+        report,
+        "report:conditionReport",
+        [
+            _condition_report(policy, duty, request, ids, evaluated)
+            for duty in policy.objects(permission, ODRL.duty)
+        ],
+    )
+    report["report:controlState"] = "report:Permit" if permitted else "report:Deny"
+    return report
 
 
-# ConstraintReport dei constraint della Permission e delle sue refinement.
-def _permission_constraint_reports(
+# ActionReport della permission: classe, target, assignee e refinement sull'azione richiesta.
+def _permission_action_report(
     policy: Graph,
     permission: Node,
     request: Graph,
     ids: dict,
-) -> list[dict]:
-    reports = [
-        _constraint_report(policy, constraint, request, ids)
-        for constraint in policy.objects(permission, ODRL.constraint)
-    ]
-    for node in _refined_nodes(policy, permission):
-        # Le refinement su action, target e assignee entrano anch'esse come ConstraintReport.
-        for refinement_node in policy.objects(node, ODRL.refinement):
-            reports.append(
-                _constraint_report(policy, refinement_node, request, ids)
-            )
-    return reports
-
-
-# ConstraintReport dei constraint di una duty.
-def _duty_constraint_reports(
-    policy: Graph,
-    duty: Node,
-    request: Graph,
-    ids: dict,
-) -> list[dict]:
-    return [
-        _constraint_report(policy, constraint, request, ids)
-        for constraint in policy.objects(duty, ODRL.constraint)
-    ]
-
-
-# Nodi della Permission che possono portare odrl:refinement.
-def _refined_nodes(policy: Graph, permission: Node):
-    for predicate in (ODRL.action, ODRL.target, ODRL.assignee):
-        yield from policy.objects(permission, predicate)
-
-
-# ConstraintReport: satisfied o not-satisfied sullo stesso confronto dei constraint.
-def _constraint_report(
-    policy: Graph,
-    constraint: Node,
-    request: Graph,
-    ids: dict,
-) -> dict:
-    satisfied = permission_active.is_constraint_satisfied(policy, constraint, request)
-    return {
-        "@id": _child_report_id(ids, "constraint"),
-        "@type": "report:ConstraintReport",
-        "report:constraint": str(constraint),
-        "report:satisfactionState": (
-            "report:Satisfied" if satisfied else "report:Not-Satisfied"
+    evaluated: Node | None,
+) -> dict | None:
+    actions = list(policy.objects(permission, ODRL.action))
+    if not actions:
+        return None
+    report = {
+        "@id": _child_report_id(ids, "action"),
+        "@type": "report:ActionReport",
+        "report:ruleAction": _one_or_list(
+            [action_class.reference(policy, action) for action in actions]
         ),
     }
+    if evaluated is not None:
+        report["report:evaluatedAction"] = str(evaluated)
+    report["report:typeReport"] = action_class.matches(policy, permission, request)
+    report["report:targetReport"] = target.matches(policy, permission, request)
+    report["report:partyReport"] = assignee.matches(policy, permission, request)
+    _put_reports(
+        report,
+        "report:refinementReport",
+        [
+            _constraint_report(policy, node, request, ids, evaluated)
+            for node in refinement.of_rule(policy, permission)
+        ],
+    )
+    return report
 
 
-# ConditionReport della duty. fulfillingAction c'è solo se una SotwAction la soddisfa.
+# ConditionReport della duty, con i propri constraint e l'ActionReport della sua azione.
 def _condition_report(
     policy: Graph,
     duty: Node,
     request: Graph,
     ids: dict,
-    fulfilled: bool,
-    fulfilling: Node | None,
+    evaluated: Node | None,
 ) -> dict:
+    checks = duty_rule.action_checks(policy, duty, request)
+    fulfilling = checks["evaluated"]
     active = duty_rule.is_active(policy, duty, request)
     report = {
         "@id": _child_report_id(ids, "condition"),
         "@type": "report:ConditionReport",
-        "report:condition": str(duty),
-        "report:activationState": "report:Active" if active else "report:Inactive",
-        "report:deonticState": "report:Fulfilled" if fulfilled else "report:Not-set",
+        "report:rule": str(duty),
     }
+    _put_reports(
+        report,
+        "report:constraintReport",
+        [
+            _constraint_report(policy, constraint, request, ids, evaluated)
+            for constraint in policy.objects(duty, ODRL.constraint)
+        ],
+    )
+    report["report:activationState"] = "report:Active" if active else "report:Inactive"
+    action_report = _duty_action_report(policy, duty, ids, checks)
+    if action_report is not None:
+        report["report:actionReport"] = action_report
     if fulfilling is not None:
         report["report:fulfillingAction"] = str(fulfilling)
+    report["report:deonticState"] = (
+        "report:Fulfilled" if fulfilling is not None else "report:Not-set"
+    )
     return report
 
 
-# ActionReport dell'azione della duty: Performed se la duty è fulfilled.
-def _action_report(action: Node, ids: dict, fulfilled: bool) -> dict:
-    return {
+# ActionReport della duty: classe, target, assignee e refinement rispetto alle SotwAction.
+def _duty_action_report(policy: Graph, duty: Node, ids: dict, checks: dict) -> dict | None:
+    action = policy.value(duty, ODRL.action)
+    if action is None:
+        return None
+    report = {
         "@id": _child_report_id(ids, "action"),
         "@type": "report:ActionReport",
-        "report:action": str(action),
-        "report:performanceState": (
-            "report:Performed" if fulfilled else "report:Unperformed"
-        ),
+        "report:ruleAction": action_class.reference(policy, action),
     }
+    if checks["evaluated"] is not None:
+        report["report:evaluatedAction"] = str(checks["evaluated"])
+    report["report:typeReport"] = checks["type_ok"]
+    report["report:targetReport"] = checks["target_ok"]
+    report["report:partyReport"] = checks["party_ok"]
+    _put_reports(
+        report,
+        "report:refinementReport",
+        [
+            _constraint_report(
+                policy, node, None, ids, on_action, satisfied=ok
+            )
+            for node, ok, on_action in checks["refinements"]
+        ],
+    )
+    return report
+
+
+# ConstraintReport. satisfied si passa solo per le refinement valutate sullo SOTW.
+def _constraint_report(
+    policy: Graph,
+    constraint: Node,
+    request: Graph | None,
+    ids: dict,
+    action: Node | None,
+    satisfied: bool | None = None,
+) -> dict:
+    if satisfied is None:
+        satisfied = permission_active.is_constraint_satisfied(policy, constraint, request)
+    report = {
+        "@id": _child_report_id(ids, "constraint"),
+        "@type": "report:ConstraintReport",
+        "report:constraint": str(constraint),
+    }
+    if action is not None:
+        report["report:action"] = str(action)
+    report["report:satisfactionState"] = (
+        "report:Satisfied" if satisfied else "report:Not-Satisfied"
+    )
+    return report
+
+
+# Una stringa se il valore è uno solo, altrimenti la lista.
+def _one_or_list(values: list[str]) -> str | list[str]:
+    if len(values) == 1:
+        return values[0]
+    return values
 
 
 # Inserisce i report sotto la chiave: un oggetto se è uno solo, una lista se sono di più.
