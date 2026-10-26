@@ -77,7 +77,7 @@ def is_permitted(policy: Graph, permission: Node, request: Graph) -> bool:
 # Lo State of the World è quello già caricato con sotw.set_source.
 def get_ev_report(policy: Graph, request: str) -> str:
     request_graph = open_evaluation_request(request)
-    document = _compliance_report(policy, request_graph)
+    document = _policy_report(policy, request_graph)
     path = _EV_REPORT_DIR / _report_file_name(request)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(document, indent=2) + "\n", encoding="utf-8")
@@ -94,8 +94,8 @@ def _report_file_name(request: str) -> str:
     return f"{Path(name).stem}_report.json"
 
 
-# Documento JSON-LD del ComplianceReport per questa policy e questa request.
-def _compliance_report(policy: Graph, request: Graph) -> dict:
+# Documento JSON-LD del PolicyReport per questa policy e questa request.
+def _policy_report(policy: Graph, request: Graph) -> dict:
     ids = _new_report_ids()
     policy_id = _single(
         policy.subjects(ODRL.permission),
@@ -143,7 +143,7 @@ def _compliance_report(policy: Graph, request: Graph) -> dict:
             "xsd": "http://www.w3.org/2001/XMLSchema#",
         },
         "@id": _policy_report_id(ids),
-        "@type": "report:ComplianceReport",
+        "@type": "report:PolicyReport",
         "dct:created": {
             "@value": _created_now(),
             "@type": "xsd:dateTime",
@@ -187,12 +187,12 @@ def _created_now() -> str:
     return now.strftime("%Y-%m-%dT%H:%M:%S.") + f"{now.microsecond // 1000:03d}Z"
 
 
-# Codice esadecimale di 16 cifre, condiviso dagli @id di un ComplianceReport.
+# Codice esadecimale di 16 cifre, condiviso dagli @id di un PolicyReport.
 def _new_report_ids() -> dict:
     return {"code": secrets.token_hex(8), "n": {}}
 
 
-# @id del ComplianceReport: https://w3id.org/lada/report/{code}.
+# @id del PolicyReport: https://w3id.org/lada/report/{code}.
 def _policy_report_id(ids: dict) -> str:
     return f"{_REPORT_IRI}{ids['code']}"
 
