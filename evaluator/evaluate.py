@@ -129,7 +129,7 @@ def _policy_report(policy: Graph, request: Graph) -> dict:
         },
         "report:policy": str(policy_id),
         "report:evaluationRequest": str(request_id),
-        "report:state": str(state_id),
+        "report:sotw": str(state_id),
     }
     _put_reports(document, "report:ruleReport", rule_reports)
     return document

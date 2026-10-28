@@ -1,0 +1,62 @@
+{
+  "@context": {
+    "odrl": "http://www.w3.org/ns/odrl.jsonld",
+    "ex": "http://example.org/",
+    "report": "http://example.com/report/temp/",
+    "dct": "http://purl.org/dc/terms/",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@id": "http://example.com/policy-report/C2",
+  "@type": "report:PolicyReport",
+  "dct:created": {
+    "@value": "2025-08-30T15:00:00.999Z",
+    "@type": "xsd:dateTime"
+  },
+  "report:policy": "http://example.com/policy/C2",
+  "report:evaluationRequest": "http://example.com/policy/evaluationrequest/C22",
+  "report:sotw": "http://example.com/policy/state/C22",
+  "report:ruleReport": {
+    "@id": "http://example.com/policy-report/C2/permission/C22",
+    "@type": "report:PermissionReport",
+    "report:rule": "http://example.com/rule/C2",
+    "report:activationState": "report:Inactive",
+    "report:actionReport": {
+      "@id": "http://example.com/policy-report/C2/request-action/C22",
+      "@type": "report:ActionReport",
+      "report:ruleAction": "http://www.w3.org/ns/odrl/2/play",
+      "report:evaluatedAction": "http://www.w3.org/ns/odrl/2/play",
+      "report:typeReport": true,
+      "report:targetReport": true,
+      "report:partyReport": true
+    },
+    "report:conditionReport": {
+      "@id": "http://example.com/policy-report/C2/condition/C22",
+      "@type": "report:ConditionReport",
+      "report:rule": "http://example.com/condition/1",
+      "report:constraintReport": {
+        "@id": "http://example.com/policy-report/C2/constraint/C22",
+        "@type": "report:ConstraintReport",
+        "report:constraint": "http://example.com/constraint/1",
+        "report:action": "http://www.w3.org/ns/odrl/2/play",
+        "report:satisfactionState": "report:Satisfied"
+      },
+      "report:activationState": "report:Active",
+      "report:actionReport": {
+        "@id": "http://example.com/policy-report/C2/action/C22",
+        "@type": "report:ActionReport",
+        "report:ruleAction": "http://example.com/action/1",
+        "report:typeReport": false,
+        "report:targetReport": true,
+        "report:partyReport": true,
+        "report:refinementReport": {
+          "@id": "http://example.com/policy-report/C2/refinement/C22",
+          "@type": "report:ConstraintReport",
+          "report:constraint": "http://example.com/refinement/1",
+          "report:satisfactionState": "report:Not-Satisfied"
+        }
+      },
+      "report:deonticState": "report:Not-set"
+    },
+    "report:controlState": "report:Deny"
+  }
+}
