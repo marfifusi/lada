@@ -6,22 +6,22 @@
     "dct": "http://purl.org/dc/terms/",
     "xsd": "http://www.w3.org/2001/XMLSchema#"
   },
-  "@id": "https://w3id.org/lada/report/ec7e9ce55c87cadc",
+  "@id": "https://w3id.org/lada/report/7b81fcd74873a7ba",
   "@type": "report:PolicyReport",
   "dct:created": {
-    "@value": "2026-10-28T08:33:55.446Z",
+    "@value": "2026-10-30T09:26:10.073Z",
     "@type": "xsd:dateTime"
   },
   "report:policy": "http://example.com/policy/C1",
   "report:evaluationRequest": "http://example.com/policy/evaluationrequest/C11",
   "report:sotw": "https://ex.org/C11",
   "report:ruleReport": {
-    "@id": "https://w3id.org/lada/report/ec7e9ce55c87cadc#permission-1",
+    "@id": "https://w3id.org/lada/report/7b81fcd74873a7ba#permission-1",
     "@type": "report:PermissionReport",
     "report:rule": "http://example.com/rule/C1",
     "report:activationState": "report:Inactive",
     "report:actionReport": {
-      "@id": "https://w3id.org/lada/report/ec7e9ce55c87cadc#action-1",
+      "@id": "https://w3id.org/lada/report/7b81fcd74873a7ba#action-1",
       "@type": "report:ActionReport",
       "report:ruleAction": "http://www.w3.org/ns/odrl/2/play",
       "report:evaluatedAction": "http://www.w3.org/ns/odrl/2/play",
@@ -30,19 +30,19 @@
       "report:partyReport": true
     },
     "report:conditionReport": {
-      "@id": "https://w3id.org/lada/report/ec7e9ce55c87cadc#condition-1",
+      "@id": "https://w3id.org/lada/report/7b81fcd74873a7ba#condition-1",
       "@type": "report:ConditionReport",
       "report:rule": "http://example.com/condition/1",
       "report:activationState": "report:Active",
       "report:actionReport": {
-        "@id": "https://w3id.org/lada/report/ec7e9ce55c87cadc#action-2",
+        "@id": "https://w3id.org/lada/report/7b81fcd74873a7ba#action-2",
         "@type": "report:ActionReport",
         "report:ruleAction": "http://example.com/action/1",
         "report:typeReport": false,
-        "report:targetReport": true,
-        "report:partyReport": true,
+        "report:targetReport": false,
+        "report:partyReport": false,
         "report:refinementReport": {
-          "@id": "https://w3id.org/lada/report/ec7e9ce55c87cadc#constraint-1",
+          "@id": "https://w3id.org/lada/report/7b81fcd74873a7ba#constraint-1",
           "@type": "report:ConstraintReport",
           "report:constraint": "http://example.com/refinement/1",
           "report:satisfactionState": "report:Not-Satisfied"

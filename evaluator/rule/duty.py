@@ -49,6 +49,7 @@ def fulfilling_action(policy: Graph, duty: Node, request: Graph) -> Node | None:
 
 # Tipo, target, assignee e refinement dell'azione della duty rispetto alle SotwAction.
 # evaluated è l'identità dell'azione che adempie la duty, oppure None.
+# I tre flag del report guardano ogni SotwAction con lo stesso conditionId.
 # Una refinement è soddisfatta se un'azione del tipo giusto, già avvenuta,
 # con target e assignee ammessi, ha un ConstraintSatisfier che la copre.
 def action_checks(policy: Graph, duty: Node, request: Graph) -> dict:
@@ -58,9 +59,13 @@ def action_checks(policy: Graph, duty: Node, request: Graph) -> dict:
     refinements = (
         list(policy.objects(action, ODRL.refinement)) if action is not None else []
     )
+    expected_type = (
+        action_class.action_type(policy, action) if action is not None else None
+    )
+    # Il fulfilled usa solo le azioni della classe della duty.
     candidates = []
-    if action is not None:
-        candidates = actions_for_duty(duty, action_class.action_type(policy, action))
+    if expected_type is not None:
+        candidates = actions_for_duty(duty, expected_type)
     eligible = [
         item
         for item in candidates
@@ -74,14 +79,35 @@ def action_checks(policy: Graph, duty: Node, request: Graph) -> dict:
                 identity = _action_identity(item["node"])
                 break
         refinement_states.append((node, identity is not None, identity))
+    flags = _sotw_report_flags(
+        actions_with_condition(duty), expected_type, duty_target, duty_assignee
+    )
     return {
         "evaluated": fulfilling_action(policy, duty, request),
-        "type_ok": bool(candidates),
-        "target_ok": duty_target is None
-        or any(_target_matches(duty_target, item) for item in candidates),
-        "party_ok": duty_assignee is None
-        or any(_assignee_matches(duty_assignee, item) for item in candidates),
+        "type_ok": flags["type"],
+        "target_ok": flags["target"],
+        "party_ok": flags["party"],
         "refinements": refinement_states,
+    }
+
+
+# typeReport, targetReport e partyReport. Senza conditionId sono tutti false.
+# Con un'azione collegata: tipo uguale, target uguale o assente sulla duty,
+# party uguale, assente sulla duty, oppure odrl:partOf la party della duty.
+def _sotw_report_flags(
+    linked: list[dict],
+    expected_type: Node | None,
+    duty_target: Node | None,
+    duty_assignee: Node | None,
+) -> dict:
+    if not linked:
+        return {"type": False, "target": False, "party": False}
+    return {
+        "type": any(item["action_type"] == expected_type for item in linked),
+        "target": duty_target is None
+        or any(_target_matches(duty_target, item) for item in linked),
+        "party": duty_assignee is None
+        or any(_party_matches(duty_assignee, item) for item in linked),
     }
 
 
@@ -165,6 +191,25 @@ def _assignee_matches(duty_assignee: Node | None, sotw_action: dict) -> bool:
     return sotw_action["action_assignee"] == duty_assignee
 
 
+# True se la party dello SOTW è l'assignee della duty, o ne è odrl:partOf.
+def _party_matches(duty_assignee: Node, sotw_action: dict) -> bool:
+    actual = sotw_action["action_assignee"]
+    if actual is None:
+        return False
+    if actual == duty_assignee:
+        return True
+    return _part_of(actual, duty_assignee)
+
+
+# True se nello SOTW c'è member odrl:partOf collection. La chiusura transitiva
+# è già nel grafo, applicata da sotw_map.n3 al caricamento.
+def _part_of(member: Node, collection: Node) -> bool:
+    graph = sotw.graph()
+    if graph is None:
+        return False
+    return (member, ODRL.partOf, collection) in graph
+
+
 # True se un ConstraintSatisfier di questa SotwAction soddisfa la refinement.
 def _refinement_satisfied(
     policy: Graph,
@@ -228,30 +273,46 @@ def _extra_triples_match(policy: Graph, refinement: Node, satisfier: dict) -> bo
     return True
 
 
-# SotwAction con sotw:conditionId uguale alla duty e lada:actionType
-# uguale alla classe dell'azione della duty. Ognuna porta data e satisfier.
-def actions_for_duty(duty: Node, action_type: Node) -> list[dict]:
+# SotwAction con sotw:conditionId uguale alla duty, di qualunque classe.
+def actions_with_condition(duty: Node) -> list[dict]:
     graph = sotw.graph()
     if graph is None:
         return []
     return [
         _action_record(action)
         for action in graph.subjects(RDF.type, LADA.SotwAction)
-        # Stessa duty (conditionId) e stessa classe di azione.
         if graph.value(action, SOTW.conditionId) == duty
-        and graph.value(action, LADA.actionType) == action_type
     ]
 
 
-# Nodo, data, target, assignee e satisfier di una SotwAction.
+# SotwAction con sotw:conditionId uguale alla duty e lada:actionType
+# uguale alla classe dell'azione della duty. Ognuna porta data e satisfier.
+def actions_for_duty(duty: Node, action_type: Node) -> list[dict]:
+    return [
+        action
+        for action in actions_with_condition(duty)
+        if action["action_type"] == action_type
+    ]
+
+
+# Nodo, classe, data, target, assignee e satisfier di una SotwAction.
 def _action_record(action: Node) -> dict:
     return {
         "node": action,
+        "action_type": _action_type(action),
         "action_datetime": _action_datetime(action),
         "action_target": _action_target(action),
         "action_assignee": _action_assignee(action),
         "satisfiers": _satisfiers(action),
     }
+
+
+# IRI lada:actionType dell'azione. None se manca.
+def _action_type(action: Node) -> Node | None:
+    graph = sotw.graph()
+    if graph is None:
+        return None
+    return graph.value(action, LADA.actionType)
 
 
 # ConstraintSatisfier collegati all'azione.
