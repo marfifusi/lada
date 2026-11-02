@@ -204,7 +204,7 @@ def _permission_report(
             for constraint in policy.objects(permission, ODRL.constraint)
         ],
     )
-    report["report:activationState"] = "report:Active" if active else "report:Inactive"
+    report["report:activationState"] = "report:active" if active else "report:inactive"
     action_report = _permission_action_report(policy, permission, request, ids, evaluated)
     if action_report is not None:
         report["report:actionReport"] = action_report
@@ -216,7 +216,7 @@ def _permission_report(
             for duty in policy.objects(permission, ODRL.duty)
         ],
     )
-    report["report:controlState"] = "report:Permit" if permitted else "report:Deny"
+    report["report:controlState"] = "report:permitted" if permitted else "report:not-permitted"
     return report
 
 
@@ -278,14 +278,14 @@ def _condition_report(
             for constraint in policy.objects(duty, ODRL.constraint)
         ],
     )
-    report["report:activationState"] = "report:Active" if active else "report:Inactive"
+    report["report:activationState"] = "report:active" if active else "report:inactive"
     action_report = _duty_action_report(policy, duty, ids, checks)
     if action_report is not None:
         report["report:actionReport"] = action_report
     if fulfilling is not None:
         report["report:fulfillingAction"] = str(fulfilling)
     report["report:deonticState"] = (
-        "report:Fulfilled" if fulfilling is not None else "report:Not-set"
+        "report:fulfilled" if fulfilling is not None else "report:not-set"
     )
     return report
 
@@ -337,7 +337,7 @@ def _constraint_report(
     if action is not None:
         report["report:action"] = str(action)
     report["report:satisfactionState"] = (
-        "report:Satisfied" if satisfied else "report:Not-Satisfied"
+        "report:satisfied" if satisfied else "report:not-satisfied"
     )
     return report
 
