@@ -31,9 +31,9 @@ def is_active(policy: Graph, duty: Node, request: Graph) -> bool:
 
 # True se la duty è fulfilled: active, e nello SOTW c'è una SotwAction
 # con lo stesso conditionId, lo stesso actionType dell'azione della duty,
-# data antecedente al dateTime della request, lo stesso target e lo stesso
-# assignee se la duty li specifica, e ogni refinement soddisfatta da un
-# ConstraintSatisfier.
+# data antecedente al dateTime della request, target uguale o odrl:partOf
+# quello della duty, lo stesso assignee se la duty lo specifica, e ogni
+# refinement soddisfatta da un ConstraintSatisfier.
 def is_fulfilled(policy: Graph, duty: Node, request: Graph) -> bool:
     return _matching_action(policy, duty, request) is not None
 
@@ -92,7 +92,7 @@ def action_checks(policy: Graph, duty: Node, request: Graph) -> dict:
 
 
 # typeReport, targetReport e partyReport. Senza conditionId sono tutti false.
-# Con un'azione collegata: tipo uguale, target uguale o assente sulla duty,
+# Con un'azione collegata: tipo uguale; target uguale, assente o partOf;
 # party uguale, assente sulla duty, oppure odrl:partOf la party della duty.
 def _sotw_report_flags(
     linked: list[dict],
@@ -177,11 +177,16 @@ def _action_identity(action: Node) -> Node:
     return action
 
 
-# Se la duty ha un target, lada:actionTarget della SotwAction deve essere quello.
+# Se la duty ha un target, lada:actionTarget è quello, oppure ne è odrl:partOf.
 def _target_matches(duty_target: Node | None, sotw_action: dict) -> bool:
     if duty_target is None:
         return True
-    return sotw_action["action_target"] == duty_target
+    actual = sotw_action["action_target"]
+    if actual is None:
+        return False
+    if actual == duty_target:
+        return True
+    return _part_of(actual, duty_target)
 
 
 # Se la duty ha un assignee, lada:actionAssignee della SotwAction deve essere quello.

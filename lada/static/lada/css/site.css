@@ -1,0 +1,213 @@
+/* Arial is the USI substitute for Akzidenz-Grotesk, which is a paid font. */
+
+:root {
+    --bs-body-font-family: Arial, Helvetica, sans-serif;
+    --bs-body-color: #000;
+    --bs-body-bg: #fff;
+    --bs-heading-color: #000;
+    --bs-primary: #000;
+    --bs-primary-rgb: 0, 0, 0;
+    --bs-link-color: #000;
+    --bs-link-hover-color: #000;
+    --bs-border-radius: 0;
+    --bs-border-radius-sm: 0;
+    --bs-border-radius-lg: 0;
+    --lada-bar: 1.5rem;
+    --lada-page: 1440px;
+    --lada-gutter: 0.9375rem;
+    --lada-ink: #000;
+    --lada-footer: #222;
+}
+
+html {
+    font-size: 100%;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    color: var(--lada-ink);
+    background: #fff;
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: 400;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+}
+
+.skip-link {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    background: #fff;
+    color: #000;
+    padding: 0.5rem 0.75rem;
+    z-index: 10;
+}
+
+.skip-link:focus {
+    left: var(--lada-gutter);
+    top: 0.5rem;
+}
+
+.site-header {
+    background: #fff;
+}
+
+.logo-bar {
+    border-top: 24px solid #000;
+    height: var(--lada-bar);
+    background: #000;
+}
+
+.header-inner,
+.page-content,
+.footer-inner {
+    max-width: var(--lada-page);
+    margin: 0 auto;
+    padding-left: var(--lada-gutter);
+    padding-right: var(--lada-gutter);
+}
+
+.header-inner {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding-top: 0.625rem;
+    padding-bottom: 1.75rem;
+}
+
+.logo-lockup {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.85rem;
+    color: #000;
+    text-decoration: none;
+}
+
+.logo-lockup:hover {
+    color: #000;
+    text-decoration: none;
+}
+
+.logo-lockup img {
+    width: 4.375rem;
+    height: auto;
+    display: block;
+}
+
+.logo-name {
+    font-size: 1.05rem;
+    line-height: 1.25rem;
+    font-weight: 700;
+}
+
+.logo-name span {
+    display: block;
+}
+
+.site-mark {
+    margin: 0;
+    padding-top: 0.15rem;
+    font-size: 1rem;
+    line-height: 1.25rem;
+    font-weight: 700;
+}
+
+.site-mark a {
+    color: #000;
+    text-decoration: none;
+    border-bottom: 1px solid #000;
+}
+
+.site-mark a:hover {
+    color: #000;
+}
+
+.site-main {
+    flex: 1 0 auto;
+}
+
+.page-content {
+    padding-top: 1.5rem;
+    padding-bottom: 3rem;
+}
+
+.page-content h1 {
+    margin: 0 0 1.5rem;
+    padding-top: 0.85rem;
+    border-top: 3px solid #000;
+    font-size: 2.5rem;
+    line-height: 1.15;
+    font-weight: 700;
+    max-width: 42rem;
+}
+
+.prose {
+    max-width: 42rem;
+    font-size: 1.125rem;
+    line-height: 1.5;
+}
+
+.prose p {
+    margin: 0 0 1rem;
+}
+
+.prose a {
+    color: #000;
+    text-decoration: none;
+    border-bottom: 1px solid #000;
+}
+
+.prose a:hover {
+    color: #000;
+}
+
+.site-footer {
+    background: var(--lada-footer);
+    color: #fff;
+    margin-top: auto;
+}
+
+.footer-inner {
+    padding-top: 2rem;
+    padding-bottom: 1.75rem;
+}
+
+.footer-inner p {
+    margin: 0 0 0.35rem;
+    font-size: 1rem;
+    line-height: 1.5rem;
+}
+
+.footer-name {
+    font-weight: 700;
+}
+
+.site-footer a {
+    color: #fff;
+    text-decoration: none;
+    border-bottom: 1px solid #fff;
+}
+
+.site-footer a:hover {
+    color: #ccc;
+    border-bottom-color: #ccc;
+}
+
+@media (max-width: 575.98px) {
+    .logo-lockup img {
+        width: 2.8125rem;
+    }
+
+    .logo-name {
+        font-size: 0.95rem;
+        line-height: 1.15rem;
+    }
+
+    .page-content h1 {
+        font-size: 2rem;
+    }
+}
