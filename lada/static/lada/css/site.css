@@ -1,22 +1,29 @@
-/* Arial is the USI substitute for Akzidenz-Grotesk, which is a paid font. */
+/* Visual language of ccdigitallaw.ch: Ropa Sans headings, Open Sans body,
+   charcoal #313331, body #333, links #e64d61, buttons #895980. */
 
 :root {
-    --bs-body-font-family: Arial, Helvetica, sans-serif;
-    --bs-body-color: #000;
+    --bs-body-font-family: "Open Sans", Arial, sans-serif;
+    --bs-body-color: #333;
     --bs-body-bg: #fff;
-    --bs-heading-color: #000;
-    --bs-primary: #000;
-    --bs-primary-rgb: 0, 0, 0;
-    --bs-link-color: #000;
-    --bs-link-hover-color: #000;
-    --bs-border-radius: 0;
-    --bs-border-radius-sm: 0;
-    --bs-border-radius-lg: 0;
-    --lada-bar: 1.5rem;
-    --lada-page: 1440px;
-    --lada-gutter: 0.9375rem;
-    --lada-ink: #000;
-    --lada-footer: #222;
+    --bs-heading-color: #313331;
+    --bs-primary: #895980;
+    --bs-primary-rgb: 137, 89, 128;
+    --bs-link-color: #e64d61;
+    --bs-link-hover-color: #c73b4e;
+    --bs-border-radius: 5px;
+    --bs-border-radius-sm: 5px;
+    --bs-border-radius-lg: 5px;
+    --lada-page: 1080px;
+    --lada-gutter: 1.25rem;
+    --lada-heading: #313331;
+    --lada-ink: #333;
+    --lada-link: #e64d61;
+    --lada-link-hover: #c73b4e;
+    --lada-accent: #895980;
+    --lada-footer: #313331;
+    --lada-wm-purple: #8a587f;
+    --lada-wm-gray: #bbbbbb;
+    --lada-wm-pink: #dd5061;
 }
 
 html {
@@ -30,7 +37,8 @@ body {
     flex-direction: column;
     color: var(--lada-ink);
     background: #fff;
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: "Open Sans", Arial, sans-serif;
+    font-size: 15px;
     font-weight: 400;
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
@@ -40,90 +48,51 @@ body {
     position: absolute;
     left: -9999px;
     top: 0;
-    background: #fff;
-    color: #000;
+    background: var(--lada-accent);
+    color: #ededed;
     padding: 0.5rem 0.75rem;
+    border-radius: 5px;
     z-index: 10;
 }
 
 .skip-link:focus {
     left: var(--lada-gutter);
     top: 0.5rem;
+    color: #ededed;
 }
 
 .site-header {
-    background: #fff;
+    background: #313331;
 }
 
-.logo-bar {
-    border-top: 24px solid #000;
-    height: var(--lada-bar);
-    background: #000;
-}
-
-.header-inner,
-.page-content,
-.footer-inner {
-    max-width: var(--lada-page);
-    margin: 0 auto;
-    padding-left: var(--lada-gutter);
-    padding-right: var(--lada-gutter);
-}
-
-.header-inner {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 1.5rem;
-    padding-top: 0.625rem;
-    padding-bottom: 1.75rem;
-}
-
-.logo-lockup {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.85rem;
-    color: #000;
-    text-decoration: none;
-}
-
-.logo-lockup:hover {
-    color: #000;
-    text-decoration: none;
-}
-
-.logo-lockup img {
-    width: 4.375rem;
-    height: auto;
+.site-wordmark {
     display: block;
-}
-
-.logo-name {
-    font-size: 1.05rem;
-    line-height: 1.25rem;
-    font-weight: 700;
-}
-
-.logo-name span {
-    display: block;
-}
-
-.site-mark {
-    margin: 0;
-    padding-top: 0.15rem;
-    font-size: 1rem;
-    line-height: 1.25rem;
-    font-weight: 700;
-}
-
-.site-mark a {
-    color: #000;
+    width: fit-content;
+    margin: 1.25rem auto 1rem;
+    font-family: "Ropa Sans", sans-serif;
+    font-size: clamp(1.7rem, 4.6vw, 3.15rem);
+    white-space: nowrap;
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: 0.03em;
     text-decoration: none;
-    border-bottom: 1px solid #000;
 }
 
-.site-mark a:hover {
-    color: #000;
+.site-wordmark:hover {
+    text-decoration: none;
+    opacity: 0.88;
+}
+
+.wm-purple {
+    color: var(--lada-wm-purple);
+}
+
+.wm-gray {
+    color: var(--lada-wm-gray);
+}
+
+.wm-pink {
+    color: var(--lada-wm-pink);
 }
 
 .site-main {
@@ -131,24 +100,30 @@ body {
 }
 
 .page-content {
-    padding-top: 1.5rem;
-    padding-bottom: 3rem;
+    max-width: var(--lada-page);
+    margin: 0 auto;
+    padding: 2.25rem var(--lada-gutter) 3.5rem;
+}
+
+.page-content h1,
+.page-content h2,
+.page-content h3 {
+    font-family: "Ropa Sans", sans-serif;
+    color: var(--lada-heading);
+    font-weight: 400;
+    line-height: 1.2;
 }
 
 .page-content h1 {
-    margin: 0 0 1.5rem;
-    padding-top: 0.85rem;
-    border-top: 3px solid #000;
-    font-size: 2.5rem;
-    line-height: 1.15;
-    font-weight: 700;
-    max-width: 42rem;
+    margin: 0 0 1.25rem;
+    font-size: 2.1em;
 }
 
 .prose {
     max-width: 42rem;
-    font-size: 1.125rem;
-    line-height: 1.5;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--lada-ink);
 }
 
 .prose p {
@@ -156,13 +131,13 @@ body {
 }
 
 .prose a {
-    color: #000;
+    color: var(--lada-link);
     text-decoration: none;
-    border-bottom: 1px solid #000;
 }
 
 .prose a:hover {
-    color: #000;
+    color: var(--lada-link-hover);
+    text-decoration: underline;
 }
 
 .site-footer {
@@ -171,43 +146,48 @@ body {
     margin-top: auto;
 }
 
-.footer-inner {
-    padding-top: 2rem;
-    padding-bottom: 1.75rem;
+.footer-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    min-height: 4.75rem;
+    padding: 0.85rem 6vw;
 }
 
-.footer-inner p {
-    margin: 0 0 0.35rem;
-    font-size: 1rem;
-    line-height: 1.5rem;
+.footer-partner {
+    justify-self: center;
 }
 
-.footer-name {
-    font-weight: 700;
+.footer-partner img {
+    display: block;
+    width: 200px;
+    max-width: 100%;
+    height: auto;
 }
 
-.site-footer a {
-    color: #fff;
-    text-decoration: none;
-    border-bottom: 1px solid #fff;
+.footer-usi {
+    justify-self: center;
 }
 
-.site-footer a:hover {
-    color: #ccc;
-    border-bottom-color: #ccc;
+.footer-usi img {
+    display: block;
+    width: 52px;
+    height: 52px;
+}
+
+.footer-usi:hover img {
+    opacity: 0.85;
 }
 
 @media (max-width: 575.98px) {
-    .logo-lockup img {
-        width: 2.8125rem;
-    }
-
-    .logo-name {
-        font-size: 0.95rem;
-        line-height: 1.15rem;
-    }
-
     .page-content h1 {
-        font-size: 2rem;
+        font-size: 1.85em;
+    }
+
+    .footer-bar {
+        grid-template-columns: 1fr;
+        justify-items: center;
+        gap: 0.75rem;
+        padding: 1rem 1.25rem 1.15rem;
     }
 }
