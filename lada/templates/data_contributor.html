@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Data contributor{% endblock %}
+
+{% block content %}
+<h1>Data contributor</h1>
+<div class="prose">
+    <p>
+        This is LADA’s interface for data contributors, the people who publish research data.
+    </p>
+    <p>
+        LADA (License Aware Digital Assistant) helps social science researchers share open data
+        and reuse it in line with its licenses. This page covers the first of those two cases.
+        The contributor answers questions about the rights they hold and about what they want
+        to allow or restrict for the people who will use the data: access, purposes of reuse,
+        reproduction, distribution, derivative works, attribution, and the other obligations
+        attached to publication.
+    </p>
+    <p>
+        From those answers, the system proposes a license for the data. The model is the
+        Creative Commons license chooser, extended to the licenses used for social science data:
+        Creative Commons, Open Data Commons, and public-sector open-data licenses. Those licenses
+        are expressed in ODRL 2.2, a machine-readable format, so that LADA can then determine
+        which uses are permitted.
+    </p>
+</div>
+{% endblock %}

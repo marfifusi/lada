@@ -130,6 +130,11 @@ body {
     margin: 0 0 1rem;
 }
 
+.prose .align-end {
+    margin-top: 1.75rem;
+    text-align: right;
+}
+
 .prose a {
     color: var(--lada-link);
     text-decoration: none;

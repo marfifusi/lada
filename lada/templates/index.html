@@ -1,27 +1,31 @@
 {% extends "base.html" %}
 
-{% block title %}Data contributor{% endblock %}
+{% block title %}lada{% endblock %}
 
 {% block content %}
-<h1>Data contributor</h1>
+<h1>Lada</h1>
 <div class="prose">
     <p>
-        This is LADA’s interface for data contributors, the people who publish research data.
+        Open Research Data, adhering to FAIR principles, prioritizes unrestricted data access under open
+        licenses (e.g., CC0 (Public Domain), CC BY (Attribution)). However, data may be shared under
+        partially restrictive licenses or under the motto “as open as possible, as closed as necessary” to
+        protect the integrity of research. To promote adoption of FAIR principles, enable data searchability
+        based on permissible actions, and ensure compliance with licenses attached to the data, it is essential
+        that licenses are formalized in a machine-readable language, like ODRL 2.2.
     </p>
     <p>
-        LADA (License Aware Digital Assistant) helps social science researchers share open data
-        and reuse it in line with its licenses. This page covers the first of those two cases.
-        The contributor answers questions about the rights they hold and about what they want
-        to allow or restrict for the people who will use the data: access, purposes of reuse,
-        reproduction, distribution, derivative works, attribution, and the other obligations
-        attached to publication.
+        This project aims to develop a License Aware Digital Assistant (LADA), which uses machine-readable
+        license specifications to help social scientists share and reuse open data responsibly. The focus of
+        the project is on formalizing a set of Natural Language licenses into machine-readable formats and
+        developing two interfaces to assist two different types of users. One interface will serve Data
+        Contributors, helping them select the appropriate license to attach to their data, by considering the
+        rights they hold and the type of actions that should be permitted or restricted on the data. The second
+        interface for Data Researchers will enable them to search for data to reuse and to reuse it correctly.
+        This second service will be implemented by performing a What-if analysis that assists the researcher
+        in understanding which actions are compliant with the licenses associated with the data.
     </p>
-    <p>
-        From those answers, the system proposes a license for the data. The model is the
-        Creative Commons license chooser, extended to the licenses used for social science data:
-        Creative Commons, Open Data Commons, and public-sector open-data licenses. Those licenses
-        are expressed in ODRL 2.2, a machine-readable format, so that LADA can then determine
-        which uses are permitted.
+    <p class="align-end">
+        <a href="{% url 'data_contributor' %}">I'm a data contributor</a>
     </p>
 </div>
 {% endblock %}
