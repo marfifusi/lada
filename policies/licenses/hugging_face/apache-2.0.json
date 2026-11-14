@@ -1,0 +1,66 @@
+{
+  "@context": [
+    "http://www.w3.org/ns/odrl.jsonld",
+    {
+      "cc": "http://creativecommons.org/ns#",
+      "dct": "http://purl.org/dc/terms/",
+      "lada": "https://w3id.org/lada#",
+      "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+      "spdx": "http://spdx.org/rdf/terms#"
+    }
+  ],
+  "uid": "https://w3id.org/lada/license/apache-2.0",
+  "@type": "Set",
+  "dct:identifier": "apache-2.0",
+  "spdx:licenseId": "Apache-2.0",
+  "rdfs:label": "Apache License 2.0 (Apache-2.0)",
+  "rdfs:seeAlso": {
+    "@id": "https://www.apache.org/licenses/LICENSE-2.0.txt"
+  },
+  "dct:alternative": "Apache-2.0",
+  "dct:hasVersion": "2.0",
+  "dct:language": {
+    "@id": "http://lexvo.org/id/iso639-3/eng"
+  },
+  "dct:publisher": "The Apache Software Foundation",
+  "dct:source": {
+    "@id": "https://www.apache.org/licenses/LICENSE-2.0"
+  },
+  "dct:title": {
+    "@value": "Apache License, Version 2.0",
+    "@language": "en"
+  },
+  "permission": [
+    {
+      "action": [
+        "cc:Reproduction",
+        "derive"
+      ]
+    },
+    {
+      "action": "cc:Distribution",
+      "duty": [
+        {
+          "action": "cc:Notice"
+        }
+      ]
+    },
+    {
+      "action": "cc:DerivativeWorks",
+      "duty": [
+        {
+          "action": "cc:Notice"
+        },
+        {
+          "action": "cc:Attribution"
+        },
+        {
+          "action": "lada:stateChanges"
+        }
+      ]
+    },
+    {
+      "action": "grantUse"
+    }
+  ]
+}

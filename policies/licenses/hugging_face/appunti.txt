@@ -1,0 +1,170 @@
+Proposta di modellizzazione ODRL delle 15 licenze Hugging Face (Tier 1)
+=======================================================================
+
+Questa cartella contiene 15 proposte, un file per licenza con il nome
+dell'identificatore Hugging Face (es. cc-by-4.0.json, odbl.json).
+L'elenco delle 15 licenze viene dal report
+https://github.com/manabcodes/fineprint/blob/main/docs/report_huggingface_licenses.MD
+
+Ogni modello è stato scritto leggendo il testo inglese della licenza. I
+file già presenti in policies/licenses/ sono serviti solo per la sintassi.
+
+
+Verifiche fatte
+---------------
+
+Tutti i file si caricano con il loader del progetto (open_rdflib) e ogni
+termine si espande in un IRI valido.
+
+Il vincolo NonCommercial di cc-by-nc-4.0 è stato provato con l'evaluator:
+il permesso è active con scopo non commerciale e inactive con un altro
+scopo.
+
+is_permitted non è stato provato: senza target l'evaluator non dà mai
+permitted, e questi file, come quelli esistenti, non ne hanno.
+
+
+Come sono modellate
+-------------------
+
+Duty solo dove il testo li fa scattare.
+Permessi separati per copia privata, condivisione e condivisione di opere
+derivate. Ad esempio in CC BY l'attribuzione è richiesta solo quando si
+condivide.
+
+Creare e distribuire un'opera derivata sono azioni distinte.
+derive è la creazione, cc:DerivativeWorks la distribuzione (è la
+definizione ccREL: "distribution of derivative works"). Così CC BY-NC-ND
+permette derive e semplicemente non concede l'altra, senza prohibition.
+
+NonCommercial è un constraint sul permesso.
+purpose eq lada:nonCommercialUse, come IRI, perché il testo concede i
+diritti "for NonCommercial purposes only".
+
+Prohibition solo per condotte che il testo vieta.
+Non per diritti semplicemente non concessi.
+
+Un'azione per duty.
+L'evaluator legge una sola azione per duty.
+
+Azioni ODRL aggiuntive.
+extract dove è concesso il diritto sui generis sulle banche dati,
+aggregate dove il testo cita le raccolte, grantUse dove è ammessa la
+sublicenza.
+
+
+Punti distintivi per file
+-------------------------
+
+apache-2.0.json
+Notice sulla distribuzione. Sulle derivate anche Attribution e
+indicazione delle modifiche.
+
+mit.json
+Un solo permesso, Notice su ogni copia.
+
+cc-by-4.0.json, cc-by-nc-4.0.json, cc-by-sa-4.0.json,
+cc-by-nc-sa-4.0.json, cc-by-nc-nd-4.0.json
+Attribution e Notice sulla condivisione. A seconda della variante: NC
+come constraint, ShareAlike sulle derivate, nessuna distribuzione di
+derivate.
+
+cc0-1.0.json
+Tutto permesso, nessun duty.
+
+cc-by-sa-3.0.json
+Versione Unported. Indicazione delle modifiche già alla creazione
+dell'adattamento.
+
+odbl.json
+ShareAlike e cc:SourceCode sui database derivati. Il "Produced Work" è un
+permesso a parte.
+
+odc-by.json
+Come ODbL, senza ShareAlike e cc:SourceCode.
+
+afl-3.0.json
+Duty già su derive. obtainConsent sulla distribuzione.
+
+gfdl.json
+Notice anche sulla sola copia. ShareAlike. cc:SourceCode oltre le 100
+copie.
+
+openrail.json
+Solo il nucleo comune della famiglia.
+
+creativeml-openrail-m.json
+Come openrail, più Notice, Attribution e gli 11 usi vietati
+dell'Attachment A.
+
+
+Termini lada: nuovi
+-------------------
+
+Dove ODRL e ccREL non hanno un termine ne è stato proposto uno. Non sono
+definiti da nessuna parte, quindi sono da approvare o rinominare.
+
+lada:stateChanges (duty)
+Indicare che l'opera è stata modificata.
+
+lada:imposeDownstreamRestrictions (prohibition)
+Imporre ai destinatari condizioni aggiuntive o misure tecnologiche.
+
+lada:passOnUseRestrictions (duty)
+Trasmettere le restrizioni d'uso a chi riceve (licenze RAIL).
+
+lada:shareProducedWork (permission)
+Uso pubblico di un "Produced Work" di ODbL e ODC-By.
+
+lada:UseRestrictedByLicense (classe di scopi, in openrail.json)
+Uno scopo elencato fra le restrizioni d'uso della licenza.
+
+Gli 11 scopi vietati di CreativeML (in creativeml-openrail-m.json):
+lada:unlawfulUse
+lada:harmToMinors
+lada:harmfulDisinformation
+lada:harmfulPersonalInformationDisclosure
+lada:defamationOrHarassment
+lada:adverseAutomatedDecisionMaking
+lada:behaviourBasedDiscrimination
+lada:exploitationOfVulnerableGroups
+lada:protectedCharacteristicDiscrimination
+lada:medicalAdvice
+lada:lawEnforcementOrJusticeUse
+
+lada:nonCommercialUse era già nel progetto.
+
+
+Scelte da confermare
+--------------------
+
+openrail è una famiglia senza testo unico.
+È modellato solo ciò che la RAIL Initiative definisce comune a tutte:
+riuso libero, restrizioni d'uso, obbligo di trasmetterle. Gli usi vietati
+restano astratti, quindi il file non è valutabile finché non si conosce
+la licenza concreta.
+Riferimento: https://www.licenses.ai/blog/2022/8/18/naming-convention-of-responsible-ai-licenses
+
+gfdl è una famiglia.
+È stata usata la versione 1.3, con SPDX GFDL-1.3-or-later.
+
+uid.
+https://w3id.org/lada/license/<id>, per non collidere con i
+purl.org/NET/rdflicense dei file esistenti.
+
+Approssimazioni.
+L'assenso dei destinatari di AFL §9 è reso con obtainConsent. La soglia
+GFDL delle 100 copie è un constraint count sul duty.
+
+Sintassi.
+I file usano il contesto ODRL 2.2, come quelli esistenti, e come loro non
+dichiarano un profile, che la 2.2 richiederebbe per i termini fuori dal
+core.
+
+
+Non modellato
+-------------
+
+Brevetti, marchi ed endorsement, garanzie, risoluzione, diritti morali,
+le Invariant Sections e i Cover Texts della GFDL, l'eccezione di
+"parallel distribution" di ODbL.

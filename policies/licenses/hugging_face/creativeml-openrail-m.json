@@ -1,0 +1,123 @@
+{
+  "@context": [
+    "http://www.w3.org/ns/odrl.jsonld",
+    {
+      "cc": "http://creativecommons.org/ns#",
+      "dct": "http://purl.org/dc/terms/",
+      "lada": "https://w3id.org/lada#",
+      "rdfs": "http://www.w3.org/2000/01/rdf-schema#"
+    }
+  ],
+  "uid": "https://w3id.org/lada/license/creativeml-openrail-m",
+  "@type": "Set",
+  "dct:identifier": "creativeml-openrail-m",
+  "rdfs:label": "CreativeML Open RAIL-M (CreativeML OpenRAIL-M)",
+  "rdfs:seeAlso": {
+    "@id": "https://huggingface.co/spaces/CompVis/stable-diffusion-license/raw/main/license.txt"
+  },
+  "dct:alternative": "CreativeML OpenRAIL-M",
+  "dct:language": {
+    "@id": "http://lexvo.org/id/iso639-3/eng"
+  },
+  "dct:publisher": "Robin Rombach, Patrick Esser and contributors",
+  "dct:source": {
+    "@id": "https://huggingface.co/spaces/CompVis/stable-diffusion-license"
+  },
+  "dct:title": {
+    "@value": "CreativeML Open RAIL-M, dated August 22, 2022",
+    "@language": "en"
+  },
+  "permission": [
+    {
+      "action": [
+        "cc:Reproduction",
+        "derive"
+      ]
+    },
+    {
+      "action": "cc:Distribution",
+      "duty": [
+        {
+          "action": "lada:passOnUseRestrictions"
+        },
+        {
+          "action": "cc:Notice"
+        },
+        {
+          "action": "cc:Attribution"
+        }
+      ]
+    },
+    {
+      "action": "cc:DerivativeWorks",
+      "duty": [
+        {
+          "action": "lada:passOnUseRestrictions"
+        },
+        {
+          "action": "cc:Notice"
+        },
+        {
+          "action": "cc:Attribution"
+        },
+        {
+          "action": "lada:stateChanges"
+        }
+      ]
+    },
+    {
+      "action": "grantUse",
+      "duty": [
+        {
+          "action": "lada:passOnUseRestrictions"
+        }
+      ]
+    }
+  ],
+  "prohibition": [
+    {
+      "action": "use",
+      "constraint": [
+        {
+          "leftOperand": "purpose",
+          "operator": "isAnyOf",
+          "rightOperand": [
+            {
+              "@id": "lada:unlawfulUse"
+            },
+            {
+              "@id": "lada:harmToMinors"
+            },
+            {
+              "@id": "lada:harmfulDisinformation"
+            },
+            {
+              "@id": "lada:harmfulPersonalInformationDisclosure"
+            },
+            {
+              "@id": "lada:defamationOrHarassment"
+            },
+            {
+              "@id": "lada:adverseAutomatedDecisionMaking"
+            },
+            {
+              "@id": "lada:behaviourBasedDiscrimination"
+            },
+            {
+              "@id": "lada:exploitationOfVulnerableGroups"
+            },
+            {
+              "@id": "lada:protectedCharacteristicDiscrimination"
+            },
+            {
+              "@id": "lada:medicalAdvice"
+            },
+            {
+              "@id": "lada:lawEnforcementOrJusticeUse"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

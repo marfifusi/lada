@@ -1,0 +1,83 @@
+{
+  "@context": [
+    "http://www.w3.org/ns/odrl.jsonld",
+    {
+      "cc": "http://creativecommons.org/ns#",
+      "dct": "http://purl.org/dc/terms/",
+      "lada": "https://w3id.org/lada#",
+      "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+      "spdx": "http://spdx.org/rdf/terms#"
+    }
+  ],
+  "uid": "https://w3id.org/lada/license/afl-3.0",
+  "@type": "Set",
+  "dct:identifier": "afl-3.0",
+  "spdx:licenseId": "AFL-3.0",
+  "rdfs:label": "Academic Free License v3.0 (AFL-3.0)",
+  "rdfs:seeAlso": {
+    "@id": "https://spdx.org/licenses/AFL-3.0.html"
+  },
+  "dct:alternative": "AFL-3.0",
+  "dct:hasVersion": "3.0",
+  "dct:language": {
+    "@id": "http://lexvo.org/id/iso639-3/eng"
+  },
+  "dct:publisher": "Lawrence Rosen",
+  "dct:source": {
+    "@id": "https://opensource.org/license/afl-3.0"
+  },
+  "dct:title": {
+    "@value": "Academic Free License (\"AFL\") v. 3.0",
+    "@language": "en"
+  },
+  "permission": [
+    {
+      "action": [
+        "cc:Reproduction",
+        "aggregate"
+      ]
+    },
+    {
+      "action": "cc:Distribution",
+      "duty": [
+        {
+          "action": "obtainConsent"
+        }
+      ]
+    },
+    {
+      "action": "derive",
+      "duty": [
+        {
+          "action": "cc:Notice"
+        },
+        {
+          "action": "cc:Attribution"
+        },
+        {
+          "action": "lada:stateChanges"
+        }
+      ]
+    },
+    {
+      "action": "cc:DerivativeWorks",
+      "duty": [
+        {
+          "action": "cc:Notice"
+        },
+        {
+          "action": "cc:Attribution"
+        },
+        {
+          "action": "lada:stateChanges"
+        },
+        {
+          "action": "obtainConsent"
+        }
+      ]
+    },
+    {
+      "action": "grantUse"
+    }
+  ]
+}
