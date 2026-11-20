@@ -1,10 +1,12 @@
 {% extends "base.html" %}
+{% load static %}
 
-{% block title %}Data contributor{% endblock %}
+{% block title %}Data Contributor Licensing Assistant{% endblock %}
 
 {% block content %}
-<h1>Data contributor</h1>
-<div class="prose">
+<h1>Data Contributor Licensing Assistant</h1>
+<div class="contributor-panel">
+<div id="contributor-intro" class="prose">
     <p>
         This is LADA’s interface for data contributors, the people who publish research data.
     </p>
@@ -23,5 +25,130 @@
         are expressed in ODRL 2.2, a machine-readable format, so that LADA can then determine
         which uses are permitted.
     </p>
+    <p class="questionnaire-start">
+        <button type="button" id="start-questionnaire" class="btn-lada">Start the questionnaire</button>
+    </p>
 </div>
+
+<form id="contributor-questionnaire" class="questionnaire" hidden>
+    <section id="step-access" aria-labelledby="access-title">
+        <h2 id="access-title" tabindex="-1">Access<button type="button" class="q-info" aria-label="About access" aria-describedby="access-info"><span aria-hidden="true">i</span><span id="access-info" class="q-info-tip" role="tooltip">Letting others view your data, at a place and time they choose.</span></button></h2>
+        <p id="access-prompt" class="q-prompt">Do you want to specify restrictions on <strong>accessing</strong> your data?</p>
+        <div class="q-options" role="group" aria-labelledby="access-prompt">
+            <label class="q-option" for="access-none">
+                <input type="checkbox" id="access-none" name="access_none" value="no">
+                <span>No</span>
+            </label>
+            <label class="q-option" for="access-purpose">
+                <input type="checkbox" id="access-purpose" name="access_purpose_restriction" value="yes">
+                <span>For certain purposes only</span>
+            </label>
+            <div id="access-purpose-panel" class="q-panel" hidden>
+                <span class="q-subheading" id="access-purpose-label">Purposes</span>
+                <div class="q-options" role="group" aria-labelledby="access-purpose-label">
+                    <label class="q-option" for="purpose-non-commercial">
+                        <input type="checkbox" id="purpose-non-commercial" name="access_purpose" value="non-commercial">
+                        <span>Non-commercial</span>
+                    </label>
+                    <label class="q-option" for="purpose-research">
+                        <input type="checkbox" id="purpose-research" name="access_purpose" value="research">
+                        <span>Research</span>
+                    </label>
+                    <label class="q-option" for="purpose-teaching">
+                        <input type="checkbox" id="purpose-teaching" name="access_purpose" value="teaching">
+                        <span>Teaching</span>
+                    </label>
+                    <label class="q-option" for="purpose-internal">
+                        <input type="checkbox" id="purpose-internal" name="access_purpose" value="internal-use">
+                        <span>Internal use within the organisation</span>
+                    </label>
+                </div>
+            </div>
+            <label class="q-option" for="access-date">
+                <input type="checkbox" id="access-date" name="access_date_restriction" value="yes">
+                <span>From a certain date only</span>
+            </label>
+            <div id="access-date-panel" class="q-panel" hidden>
+                <label class="q-subheading" for="access-from-date">From</label>
+                <input type="date" id="access-from-date" name="access_from_date" class="q-control">
+            </div>
+            <label class="q-option" for="access-place">
+                <input type="checkbox" id="access-place" name="access_place_restriction" value="yes">
+                <span>In a certain place only</span>
+            </label>
+            <div id="access-place-panel" class="q-panel" hidden>
+                <label class="q-subheading" for="access-place-select">Place</label>
+                <select id="access-place-select" name="access_place" class="q-control">
+                    <option value="">Select a place</option>
+                </select>
+            </div>
+        </div>
+        <div class="q-nav">
+            <button type="button" id="access-back" class="btn-lada">Back</button>
+            <button type="button" id="access-next" class="btn-lada">Next</button>
+        </div>
+    </section>
+    <section id="step-reproduce" aria-labelledby="reproduce-title" hidden>
+        <h2 id="reproduce-title" tabindex="-1">Reproducing<button type="button" class="q-info" aria-label="About reproducing" aria-describedby="reproduce-info"><span aria-hidden="true">i</span><span id="reproduce-info" class="q-info-tip" role="tooltip">Making copies of your data, in whole or in part.</span></button></h2>
+        <p id="reproduce-prompt" class="q-prompt">Do you want to specify additional restrictions on <strong>reproducing</strong> your data?</p>
+        <div class="q-options" role="group" aria-labelledby="reproduce-prompt">
+            <label class="q-option" for="reproduce-none">
+                <input type="checkbox" id="reproduce-none" name="reproduce_none" value="no">
+                <span>No</span>
+            </label>
+            <label class="q-option" for="reproduce-purpose">
+                <input type="checkbox" id="reproduce-purpose" name="reproduce_purpose_restriction" value="yes">
+                <span>For certain purposes only</span>
+            </label>
+            <div id="reproduce-purpose-panel" class="q-panel" hidden>
+                <span class="q-subheading" id="reproduce-purpose-label">Purposes</span>
+                <div class="q-options" role="group" aria-labelledby="reproduce-purpose-label">
+                    <label class="q-option" for="reproduce-purpose-non-commercial">
+                        <input type="checkbox" id="reproduce-purpose-non-commercial" name="reproduce_purpose" value="non-commercial">
+                        <span>Non-commercial</span>
+                    </label>
+                    <label class="q-option" for="reproduce-purpose-research">
+                        <input type="checkbox" id="reproduce-purpose-research" name="reproduce_purpose" value="research">
+                        <span>Research</span>
+                    </label>
+                    <label class="q-option" for="reproduce-purpose-teaching">
+                        <input type="checkbox" id="reproduce-purpose-teaching" name="reproduce_purpose" value="teaching">
+                        <span>Teaching</span>
+                    </label>
+                    <label class="q-option" for="reproduce-purpose-internal">
+                        <input type="checkbox" id="reproduce-purpose-internal" name="reproduce_purpose" value="internal-use">
+                        <span>Internal use within the organisation</span>
+                    </label>
+                </div>
+            </div>
+            <label class="q-option" for="reproduce-date">
+                <input type="checkbox" id="reproduce-date" name="reproduce_date_restriction" value="yes">
+                <span>From a certain date only</span>
+            </label>
+            <div id="reproduce-date-panel" class="q-panel" hidden>
+                <label class="q-subheading" for="reproduce-from-date">From</label>
+                <input type="date" id="reproduce-from-date" name="reproduce_from_date" class="q-control">
+            </div>
+            <label class="q-option" for="reproduce-place">
+                <input type="checkbox" id="reproduce-place" name="reproduce_place_restriction" value="yes">
+                <span>In a certain place only</span>
+            </label>
+            <div id="reproduce-place-panel" class="q-panel" hidden>
+                <label class="q-subheading" for="reproduce-place-select">Place</label>
+                <select id="reproduce-place-select" name="reproduce_place" class="q-control">
+                    <option value="">Select a place</option>
+                </select>
+            </div>
+        </div>
+        <div class="q-nav">
+            <button type="button" id="reproduce-back" class="btn-lada">Back</button>
+            <button type="button" id="reproduce-next" class="btn-lada">Next</button>
+        </div>
+    </section>
+</form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'lada/js/data_contributor.js' %}" defer></script>
 {% endblock %}

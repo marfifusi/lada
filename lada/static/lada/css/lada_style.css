@@ -135,6 +135,12 @@ body {
     text-align: right;
 }
 
+.prose .questionnaire-start {
+    margin-top: 3.25rem;
+    padding-right: 1.5rem;
+    text-align: right;
+}
+
 .prose a {
     color: var(--lada-link);
     text-decoration: none;
@@ -143,6 +149,188 @@ body {
 .prose a:hover {
     color: var(--lada-link-hover);
     text-decoration: underline;
+}
+
+.contributor-panel {
+    max-width: 46rem;
+    margin: 2.75rem auto 0;
+    padding: 2.25rem 2.5rem 2.5rem;
+    text-align: left;
+    font-size: 1.2rem;
+    line-height: 1.6;
+    border: 1px solid #e3d8e0;
+    border-radius: 8px;
+    background: #fff;
+}
+
+.contributor-panel .prose {
+    max-width: none;
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+.btn-lada {
+    background: var(--lada-accent);
+    color: #fff;
+    border: 0;
+    border-radius: 5px;
+    padding: 0.55rem 1rem;
+    font-family: "Open Sans", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.4;
+    cursor: pointer;
+}
+
+.btn-lada:hover {
+    background: #73486b;
+}
+
+.questionnaire {
+    max-width: none;
+    margin: 0;
+    text-align: left;
+    font-size: inherit;
+    line-height: inherit;
+}
+
+.questionnaire h2 {
+    margin: 0 0 1rem;
+    font-size: 2rem;
+}
+
+.q-info {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 0.85rem;
+    height: 0.85rem;
+    margin-left: 0.3rem;
+    vertical-align: super;
+    border: 1.5px solid #b3b3b3;
+    border-radius: 50%;
+    background: #fff;
+    color: #9a9a9a;
+    font-family: "Open Sans", Arial, sans-serif;
+    font-size: 0.6rem;
+    font-weight: 700;
+    font-style: italic;
+    line-height: 1;
+    padding: 0;
+    cursor: help;
+}
+
+.q-info-tip {
+    position: absolute;
+    z-index: 3;
+    left: 50%;
+    bottom: calc(100% + 0.45rem);
+    width: max-content;
+    max-width: 16rem;
+    padding: 0.45rem 0.65rem;
+    border-radius: 5px;
+    background: var(--lada-heading);
+    color: #fff;
+    font-family: "Open Sans", Arial, sans-serif;
+    font-size: 0.8rem;
+    font-weight: 400;
+    font-style: normal;
+    line-height: 1.35;
+    text-align: left;
+    white-space: normal;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateX(-30%);
+}
+
+.q-info:hover .q-info-tip,
+.q-info:focus .q-info-tip {
+    opacity: 1;
+    visibility: visible;
+}
+
+.q-prompt {
+    margin: 0 0 1rem;
+}
+
+.q-nav {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2.75rem;
+}
+
+.questionnaire .btn-lada {
+    font-size: 1.05rem;
+    padding: 0.65rem 1.15rem;
+}
+
+.q-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+}
+
+.q-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.55rem;
+    margin: 0;
+    cursor: pointer;
+}
+
+.q-option input {
+    width: 1.15rem;
+    height: 1.15rem;
+    margin-top: 0.3rem;
+    accent-color: var(--lada-accent);
+}
+
+.q-option.is-locked {
+    color: #9a9a9a;
+    cursor: not-allowed;
+}
+
+.q-option.is-locked input {
+    accent-color: #bdbdbd;
+    cursor: not-allowed;
+}
+
+.q-control:disabled {
+    color: #8a8a8a;
+    background: #f3f3f3;
+    cursor: not-allowed;
+}
+
+.q-date-hint {
+    margin: 0.45rem 0 0;
+    color: #777;
+    font-size: 0.85rem;
+}
+
+.q-panel {
+    box-sizing: content-box;
+    margin: -0.2rem 0 0.15rem 1.55rem;
+    padding: 0.85rem 1rem;
+    border-left: 3px solid var(--lada-accent);
+    background: #f7f4f6;
+}
+
+.q-subheading {
+    display: block;
+    margin: 0 0 0.5rem;
+    font-weight: 600;
+}
+
+.q-control {
+    font-family: "Open Sans", Arial, sans-serif;
+    font-size: 1.05rem;
+    color: var(--lada-ink);
+    border: 1px solid #c8c8c8;
+    border-radius: 5px;
+    padding: 0.4rem 0.55rem;
+    background: #fff;
+    max-width: 100%;
 }
 
 .site-footer {
@@ -187,6 +375,12 @@ body {
 @media (max-width: 575.98px) {
     .page-content h1 {
         font-size: 1.85em;
+    }
+
+    .contributor-panel {
+        margin-top: 1.75rem;
+        padding: 1.35rem 1.1rem 1.5rem;
+        font-size: 1.05rem;
     }
 
     .footer-bar {
