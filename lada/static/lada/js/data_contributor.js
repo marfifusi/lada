@@ -136,6 +136,10 @@
 
         $("#step-" + prefix).on("change", "input, select", function () {
             resetFollowing(prefix);
+            var $error = $("#step-" + prefix + " .q-step-error");
+            if ($error.length && !$error.prop("hidden")) {
+                showStepError(prefix, missingAnswers(prefix));
+            }
         });
     }
 
@@ -275,6 +279,53 @@
             $panel.stop(true, true);
             clearPanelMotion($panel);
             $panel.prop("hidden", true);
+        });
+    }
+
+    function missingAnswers(prefix) {
+        var missing = [];
+        if ($("#" + prefix + "-purpose").prop("checked") && $("#" + prefix + "-purpose-panel input:checked").length === 0) {
+            missing.push("Select at least one purpose.");
+        }
+        if ($("#" + prefix + "-date").prop("checked") && !$("#" + prefix + "-from-date").val()) {
+            missing.push("Choose a date.");
+        }
+        if ($("#" + prefix + "-place").prop("checked") && !$("#" + prefix + "-place-select").val()) {
+            missing.push("Select a place.");
+        }
+        return missing;
+    }
+
+    function showStepError(prefix, missing) {
+        var $nav = $("#" + prefix + "-next").closest(".q-nav");
+        var $error = $nav.children(".q-step-error");
+        if (!$error.length) {
+            $error = $("<p class='q-step-error' role='alert' hidden></p>");
+            $nav.prepend($error);
+        }
+        $error.empty();
+        if (!missing.length) {
+            $error.prop("hidden", true);
+            return;
+        }
+        missing.forEach(function (text) {
+            $error.append($("<span></span>").text(text));
+        });
+        $error.prop("hidden", false);
+    }
+
+    /* Next on the four action questions. Pass the following prefix, or null when it does not exist yet. */
+    function bindActionNext(prefix, nextPrefix) {
+        $("#" + prefix + "-next").on("click", function () {
+            var missing = missingAnswers(prefix);
+            showStepError(prefix, missing);
+            if (missing.length || !nextPrefix) {
+                return;
+            }
+            syncFromPrevious(nextPrefix);
+            fadeSwap($("#step-" + prefix), $("#step-" + nextPrefix), function () {
+                $("#" + nextPrefix + "-title").trigger("focus");
+            });
         });
     }
 
@@ -422,12 +473,8 @@
             });
         });
 
-        $("#access-next").on("click", function () {
-            syncFromPrevious("reproduce");
-            fadeSwap($("#step-access"), $("#step-reproduce"), function () {
-                $("#reproduce-title").trigger("focus");
-            });
-        });
+        bindActionNext("access", "reproduce");
+        bindActionNext("reproduce", null);
 
         $("#reproduce-back").on("click", function () {
             fadeSwap($("#step-reproduce"), $("#step-access"), function () {

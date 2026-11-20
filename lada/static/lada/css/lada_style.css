@@ -165,7 +165,7 @@ body {
 
 .contributor-panel .prose {
     max-width: none;
-    font-size: 15px;
+    font-size: inherit;
     line-height: 1.6;
 }
 
@@ -256,8 +256,20 @@ body {
 
 .q-nav {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     margin-top: 2.75rem;
+}
+
+.q-step-error {
+    flex: 1 0 100%;
+    margin: 0 0 0.85rem;
+    color: #c73b4e;
+    font-size: 0.95rem;
+}
+
+.q-step-error span {
+    display: block;
 }
 
 .questionnaire .btn-lada {
